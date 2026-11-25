@@ -15,6 +15,7 @@ export default function ResultCard({ result }: { result: PredictionResult }) {
 
   return (
     <div className="space-y-5">
+      <p className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">{result.modelCount === 2 ? "Experimental two-model ensemble" : "Single trained model · EfficientNet-B0"}</p>
       {result.reliable ? (
         <section className="card" aria-label="Predicted category">
           <p className="text-xs font-semibold uppercase tracking-wider text-teal-700">Highest-scoring category</p>
@@ -36,8 +37,7 @@ export default function ResultCard({ result }: { result: PredictionResult }) {
         <section className="card border-amber-300 bg-amber-50" role="alert" aria-label="Result not reliable">
           <h2 className="text-xl font-bold text-amber-900">{UNCERTAIN_MESSAGE}</h2>
           <p className="mt-2 text-sm text-amber-900">
-            The model’s highest score ({(result.top.score * 100).toFixed(1)}%) was below the reliability threshold
-            ({(result.threshold * 100).toFixed(0)}%) that this prototype requires before showing a category. This does not mean the skin is
+            {result.disagreement ? "The models disagreed on the highest-scoring category." : "The result did not meet the experimental acceptance threshold."} This does not mean the skin is
             healthy or unhealthy.
           </p>
           <p className="mt-2 text-sm text-amber-900">

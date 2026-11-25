@@ -1,4 +1,5 @@
 import type * as TF from "@tensorflow/tfjs";
+import { loadEnsemble, predictEnsemble } from "./ensemble";
 import { loadModel } from "./model";
 import { assessQuality, imageToCanvas, loadImageElement } from "./preprocessing";
 import type { ConditionId, PredictionResult, QualityReport, ScoredCategory } from "./types";
@@ -49,6 +50,13 @@ export async function analyseImage(objectUrl: string, onStage?: (stage: string) 
   onStage?.("Analysing the image…");
   await new Promise((r) => setTimeout(r, 30)); // let the loading animation paint
   const t0 = performance.now();
+  const ensemble = await loadEnsemble(tf, info.classes);
+  if (ensemble) {
+    onStage?.("Comparing two independent models…");
+    const combined = await predictEnsemble(tf, imageToCanvas(img, 224), ensemble);
+    const result = interpretScores(combined.scores, info.classes, ensemble.config.rejectThreshold, quality, performance.now()-t0);
+    return {...result, reliable: result.reliable && combined.agreement, modelCount: 2, disagreement: !combined.agreement};
+  }
   const scores = tf.tidy(() => {
     // The model contains EfficientNet's own normalisation layers, so it expects raw 0..255 RGB values.
     const x = tf.browser.fromPixels(canvas).toFloat().expandDims(0);
@@ -57,5 +65,5 @@ export async function analyseImage(objectUrl: string, onStage?: (stage: string) 
   const data = await scores.data().finally(() => scores.dispose());
   const ms = performance.now() - t0;
 
-  return interpretScores(data, info.classes, info.rejectThreshold, quality, ms);
+  return {...interpretScores(data, info.classes, info.rejectThreshold, quality, ms), modelCount: 1};
 }
