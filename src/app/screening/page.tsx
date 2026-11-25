@@ -84,9 +84,10 @@ export default function ScreeningPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-      <dialog ref={dialogRef} aria-labelledby="consent-title" aria-describedby="consent-summary" onCancel={(e) => { e.preventDefault(); declineConsent(); }} className="fixed inset-0 m-auto w-[calc(100%-2rem)] max-w-lg max-h-[90dvh] overflow-y-auto rounded-3xl border border-slate-200 bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/65 backdrop:backdrop-blur-sm">
-        <div className="p-5 sm:p-7">
+    <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
+      <dialog ref={dialogRef} aria-labelledby="consent-title" aria-describedby="consent-summary" onCancel={(e) => { e.preventDefault(); declineConsent(); }} className="consent-dialog fixed inset-0 m-auto overflow-hidden rounded-3xl border border-slate-200 bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/65 backdrop:backdrop-blur-sm">
+        <div className="flex max-h-[inherit] min-h-0 flex-col">
+        <div className="min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-7">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-100 text-teal-800">
             <svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/></svg>
           </div>
@@ -99,10 +100,11 @@ export default function ScreeningPage() {
             <li><strong>Your choice:</strong> You may decline or withdraw consent and clear your image at any time before analysis.</li>
           </ul>
           <p className="mt-4 text-sm"><Link href="/privacy" className="font-medium text-teal-800 underline">Privacy policy</Link> · <Link href="/consent" className="font-medium text-teal-800 underline">Full consent notice</Link></p>
-          <label className="mt-5 flex items-start gap-3 rounded-xl border border-slate-200 p-3 text-sm leading-relaxed"><input autoFocus type="checkbox" checked={acknowledged} onChange={e=>setAcknowledged(e.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-teal-700"/><span>I am an adult, have permission to use the image, and voluntarily agree to local processing for educational purposes. I understand the limitations.</span></label>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <button type="button" className="btn btn-secondary" onClick={declineConsent}>Decline</button>
-            <button type="button" className="btn btn-primary" disabled={!acknowledged} onClick={() => { setConsent(true); dialogRef.current?.close(); }}>Accept &amp; continue</button>
+          <label className="mt-5 flex items-start gap-3 rounded-xl border border-slate-200 p-3 text-sm leading-relaxed"><input type="checkbox" checked={acknowledged} onChange={e=>setAcknowledged(e.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-teal-700"/><span>I am an adult, have permission to use the image, and voluntarily agree to local processing for educational purposes. I understand the limitations.</span></label>
+          </div>
+          <div className="consent-actions grid shrink-0 grid-cols-[1fr_1.6fr] gap-2 px-4 py-3 sm:gap-3 sm:px-7">
+            <button type="button" className="btn btn-secondary !px-3" onClick={declineConsent}>Decline</button>
+            <button type="button" className="btn btn-primary !px-3" disabled={!acknowledged} onClick={() => { setConsent(true); dialogRef.current?.close(); }}>Accept &amp; continue</button>
           </div>
         </div>
       </dialog>
@@ -116,17 +118,19 @@ export default function ScreeningPage() {
         </div>
       )}
 
-      <div className="mt-6 rounded-2xl border border-teal-200 bg-teal-50 p-4 text-sm text-teal-900">
-        <p className="font-semibold">Tips for a good photograph</p>
+      <div className="mt-4 rounded-2xl border border-teal-200 bg-teal-50 p-4 text-sm text-teal-900 sm:mt-6">
+        <details>
+        <summary className="cursor-pointer font-semibold">Tips for a good photograph</summary>
         <p className="mt-1">Take a clear photograph in good lighting. Make sure the affected skin area is visible.</p>
         <ul className="mt-2 list-disc space-y-1 pl-5">
           <li>Use daylight or bright, even light – avoid harsh flash.</li>
           <li>Hold the phone steady, about 15–30 cm from the skin, and let it focus.</li>
           <li>Fill most of the frame with the skin area. Avoid showing your face or other people.</li>
         </ul>
+        </details>
       </div>
 
-      <section className="card mt-6" aria-label="Photograph upload">
+      <section className="card mt-4 sm:mt-6" aria-label="Photograph upload">
         {busy ? (
           <div className="py-4 text-center" role="status" aria-live="polite">
             {previewUrl && (

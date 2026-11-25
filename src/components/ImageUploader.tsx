@@ -67,7 +67,7 @@ export default function ImageUploader({ previewUrl, onSelect, onRemove, disabled
       {previewUrl ? (
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={previewUrl} alt="Preview of the selected skin photograph" className="mx-auto max-h-[420px] w-full object-contain" />
+          <img src={previewUrl} alt="Preview of the selected skin photograph" className="mx-auto max-h-[min(45dvh,420px)] w-full object-contain" />
         </div>
       ) : (
         <div
@@ -77,7 +77,7 @@ export default function ImageUploader({ previewUrl, onSelect, onRemove, disabled
           }}
           onDragLeave={() => setDragging(false)}
           onDrop={onDrop}
-          className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed px-4 py-12 text-center transition ${
+          className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed px-3 py-7 text-center sm:px-4 sm:py-12 transition ${
             dragging ? "border-teal-600 bg-teal-50" : "border-slate-300 bg-slate-50"
           }`}
         >
@@ -86,17 +86,17 @@ export default function ImageUploader({ previewUrl, onSelect, onRemove, disabled
             <circle cx="9" cy="10" r="2" />
             <path d="M21 16l-5-5-8 8" />
           </svg>
-          <p className="mt-3 font-semibold text-slate-800">Drag and drop a photograph here</p>
-          <p className="mt-1 text-sm text-slate-500">JPG, JPEG or PNG · up to {MAX_FILE_MB} MB</p>
+          <p className="mt-3 font-semibold text-slate-800">Choose a photograph</p>
+          <p className="mt-1 text-sm text-slate-500">Drop a file here or use the buttons below. JPG, JPEG or PNG · up to {MAX_FILE_MB} MB</p>
         </div>
       )}
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <div className="mt-4 grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3">
         <button type="button" className="btn btn-secondary" disabled={disabled} onClick={() => fileRef.current?.click()}>
           {previewUrl ? "Replace image" : "Upload image"}
         </button>
         <button type="button" className="btn btn-secondary" disabled={disabled} onClick={() => cameraRef.current?.click()}>
-          Take photo with camera
+          Take photo
         </button>
       </div>
       <p className="mt-2 text-xs text-slate-500">
@@ -111,7 +111,7 @@ export default function ImageUploader({ previewUrl, onSelect, onRemove, disabled
             setError(null);
             onRemove();
           }}
-          className="mt-3 text-sm font-semibold text-rose-700 underline underline-offset-2 hover:text-rose-800 disabled:opacity-50"
+          className="mt-3 min-h-11 text-sm font-semibold text-rose-700 underline underline-offset-2 hover:text-rose-800 disabled:opacity-50"
         >
           Remove image
         </button>

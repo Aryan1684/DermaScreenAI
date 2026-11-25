@@ -14,12 +14,12 @@ export default function ResultCard({ result }: { result: PredictionResult }) {
   const others = result.ranked.slice(1, 3);
 
   return (
-    <div className="space-y-5">
+    <div className="min-w-0 space-y-3 sm:space-y-5">
       <p className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">{result.modelCount === 2 ? "Experimental two-model ensemble" : "Single trained model · EfficientNet-B0"}</p>
       {result.reliable ? (
         <section className="card" aria-label="Predicted category">
           <p className="text-xs font-semibold uppercase tracking-wider text-teal-700">Highest-scoring category</p>
-          <h2 className="mt-1 text-2xl font-bold text-slate-900">{top.name}</h2>
+          <h2 className="mt-1 text-xl sm:text-2xl font-bold text-slate-900">{top.name}</h2>
           <div className="mt-4">
             <div className="mb-1 flex items-baseline justify-between text-sm">
               <span className="font-medium text-slate-700">Model score</span>
@@ -65,7 +65,7 @@ export default function ResultCard({ result }: { result: PredictionResult }) {
             <li key={c.id}>
               <div className="mb-1 flex items-baseline justify-between gap-3 text-sm">
                 <span className="font-medium text-slate-700">{CONDITIONS[c.id].name}</span>
-                <span className="text-slate-600">{(c.score * 100).toFixed(1)}%</span>
+                <span className="shrink-0 tabular-nums text-slate-600">{(c.score * 100).toFixed(1)}%</span>
               </div>
               <ScoreBar score={c.score} />
             </li>

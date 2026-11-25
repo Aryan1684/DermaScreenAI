@@ -20,9 +20,9 @@ export default function Navbar() {
     href === "/" ? pathname === "/" : pathname === href || (href === "/screening" && pathname === "/results");
 
   return (
-    <header onKeyDown={(e) => { if (e.key === "Escape") setOpen(false); }} className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
-      <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6" aria-label="Main">
-        <Link href="/" aria-label="DermaScreen AI home" onClick={() => setOpen(false)}>
+    <header onKeyDown={(e) => { if (e.key === "Escape") setOpen(false); }} className="site-nav sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
+      <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6" aria-label="Main">
+        <Link href="/" className="min-w-0" aria-label="DermaScreen AI home" onClick={() => setOpen(false)}>
           <Logo />
         </Link>
 
@@ -44,7 +44,7 @@ export default function Navbar() {
 
         <button
           type="button"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-slate-300 lg:hidden"
+          className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-slate-300 lg:hidden"
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
           aria-controls="mobile-navigation"
@@ -56,15 +56,14 @@ export default function Navbar() {
         </button>
       </nav>
 
-      {open && (
-        <ul id="mobile-navigation" className="border-t border-slate-200 bg-white px-4 pb-3 lg:hidden">
+      <ul id="mobile-navigation" hidden={!open} className="mobile-nav-panel space-y-1 border-t border-slate-200 bg-white px-4 py-3 lg:hidden">
           {LINKS.map((l) => (
             <li key={l.href}>
               <Link
                 href={l.href}
                 onClick={() => setOpen(false)}
                 aria-current={active(l.href) ? "page" : undefined}
-                className={`block rounded-lg px-3 py-3 text-base font-medium ${
+                className={`flex min-h-12 items-center rounded-xl px-4 py-3 text-base font-medium ${
                   active(l.href) ? "bg-teal-50 text-teal-800" : "text-slate-700"
                 }`}
               >
@@ -73,7 +72,6 @@ export default function Navbar() {
             </li>
           ))}
         </ul>
-      )}
     </header>
   );
 }

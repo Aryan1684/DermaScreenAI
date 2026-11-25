@@ -1,6 +1,6 @@
 import Link from "next/link";
 export default function PrivacyPage() {
-  return <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+  return <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
     <p className="text-xs font-bold uppercase tracking-widest text-teal-700">Responsible AI · Privacy</p>
     <h1 className="section-title mt-2">Privacy policy</h1>
     <p className="mt-2 text-slate-600">Academic prototype · Version 1.0</p>
@@ -11,6 +11,6 @@ export default function PrivacyPage() {
       <section><h2 className="text-lg font-bold text-slate-900">Your choices</h2><p>Participation is voluntary. For demonstrations, use public or properly authorized sample images rather than identifiable patient photographs. Do not submit another person’s image without permission. This prototype is intended for adult educational use.</p></section>
       <section><h2 className="text-lg font-bold text-slate-900">Questions and limitations</h2><p>Contact the project maintainers through the <a className="text-teal-800 underline" href="https://github.com/Aryan1684/DermaScreenAI">project repository</a>. Do not post personal medical information in public issues. This notice describes the application design, not a certification of legal compliance or security.</p></section>
     </div>
-    <div className="mt-6 flex flex-wrap gap-3"><Link href="/consent" className="btn btn-primary">Read consent</Link><Link href="/" className="btn btn-secondary">Home</Link></div>
+    <div className="mt-6 grid gap-3 sm:flex sm:flex-wrap"><Link href="/consent" className="btn btn-primary">Read consent</Link><Link href="/" className="btn btn-secondary">Home</Link></div>
   </div>;
 }

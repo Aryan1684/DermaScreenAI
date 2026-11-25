@@ -24,7 +24,7 @@ export default function AboutPage() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-4 py-10 sm:px-6">
+    <div className="mx-auto max-w-4xl space-y-4 px-4 py-6 sm:space-y-6 sm:px-6 sm:py-10">
       <header>
         <h1 className="section-title">About the project</h1>
         <p className="mt-2 text-slate-600">AI-Powered Skin Condition Screening Using Smartphone Images – a college minor project.</p>
@@ -125,10 +125,10 @@ export default function AboutPage() {
         )}
         {info && (
           <>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
               <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs text-slate-500">Test accuracy</p><p className="text-2xl font-bold">{pct(info.metrics.test_accuracy)}</p></div>
               <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs text-slate-500">Macro F1-score</p><p className="text-2xl font-bold">{info.metrics.test_macro_f1.toFixed(2)}</p></div>
-              <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs text-slate-500">Always guessing the biggest class</p><p className="text-2xl font-bold">{pct(info.metrics.majority_class_baseline_accuracy)}</p></div>
+              <div className="col-span-2 rounded-xl bg-slate-50 p-4 sm:col-span-1"><p className="text-xs text-slate-500">Always guessing the biggest class</p><p className="text-2xl font-bold">{pct(info.metrics.majority_class_baseline_accuracy)}</p></div>
             </div>
             <p>
               With the reliability threshold ({pct(info.rejectThreshold)}), the model gives an answer for {pct(info.metrics.test_coverage_at_threshold)} of
@@ -136,7 +136,8 @@ export default function AboutPage() {
               {info.metrics.test_accuracy_on_accepted !== null && <> and {pct(info.metrics.test_accuracy_on_accepted)} of those answers were correct</>}. For the
               remaining images it says it cannot assess the image reliably.
             </p>
-            <div className="overflow-x-auto">
+            <p className="text-xs text-slate-600 sm:hidden">Swipe the table sideways to see all metrics.</p>
+            <div className="max-w-full overflow-x-auto overscroll-x-contain rounded-lg" role="region" aria-label="Per-class evaluation metrics" tabIndex={0}>
               <table className="w-full min-w-[480px] text-left text-sm">
                 <thead>
                   <tr className="border-b border-slate-200 text-slate-500">

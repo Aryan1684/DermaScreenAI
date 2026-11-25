@@ -3,8 +3,8 @@ import Logo from "./Logo";
 
 export default function Footer() {
   return (
-    <footer className="mt-16 border-t border-slate-200 bg-white">
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-3">
+    <footer className="site-footer mt-8 sm:mt-16 border-t border-slate-200 bg-white">
+      <div className="mx-auto grid max-w-6xl gap-5 px-4 py-7 sm:gap-8 sm:px-6 sm:py-10 md:grid-cols-3">
         <div>
           <Logo />
           <p className="mt-3 text-sm text-slate-600">
@@ -27,7 +27,7 @@ export default function Footer() {
           </p>
         </div>
       </div>
-      <div className="border-t border-slate-100 py-4 text-center text-xs text-slate-500">
+      <div className="border-t border-slate-100 px-4 py-4 text-center text-xs text-slate-500">
         Academic prototype – educational use only. Not a medical device and not a medical diagnosis.
       </div>
     </footer>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 export default function ConsentPage() {
-  return <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+  return <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
     <p className="text-xs font-bold uppercase tracking-widest text-teal-700">Responsible AI · Your choice</p>
     <h1 className="section-title mt-2">Informed consent</h1>
     <p className="mt-2 text-slate-600">Read this before taking part in the screening demonstration.</p>
@@ -10,6 +10,6 @@ export default function ConsentPage() {
       <section><h2 className="text-lg font-bold text-slate-900">Privacy and withdrawal</h2><p>You can decline without submitting a photo. You can withdraw by unchecking consent, removing the image or closing or reloading the tab. Read the <Link href="/privacy" className="text-teal-800 underline">privacy policy</Link> for details. Consent is requested on the screening page and is not stored as a permanent record.</p></section>
       <section className="rounded-xl bg-amber-50 p-4 text-amber-950"><h2 className="font-bold">Medical concerns</h2><p className="mt-1">For a persistent, worsening or concerning skin problem, consult a qualified clinician. For severe symptoms or breathing difficulty, seek urgent medical care.</p></section>
     </div>
-    <div className="mt-6 flex flex-wrap gap-3"><Link href="/screening" className="btn btn-primary">Continue to screening</Link><Link href="/" className="btn btn-secondary">Decline and return home</Link></div>
+    <div className="mt-6 grid gap-3 sm:flex sm:flex-wrap"><Link href="/screening" className="btn btn-primary">Continue to screening</Link><Link href="/" className="btn btn-secondary">Decline and return home</Link></div>
   </div>;
 }
