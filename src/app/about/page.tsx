@@ -117,7 +117,7 @@ export default function AboutPage() {
         <p className="text-sm text-slate-500">Categories supported: {Object.values(CONDITIONS).map((c) => c.name).join(", ")}.</p>
       </Block>
 
-      <Block title="Model evaluation (measured on the held-out test split)">
+      <Block title="Local EfficientNet-B0 evaluation (held-out test split)">
         {info === undefined && <p className="text-slate-500">Loading…</p>}
         {info === null && (
           <p className="rounded-xl bg-amber-50 p-3 text-amber-900">
@@ -167,7 +167,7 @@ export default function AboutPage() {
       </Block>
 
       <Block title="Derm Foundation research evaluation">
-        <p>Our classifier using precomputed SCIN embeddings achieved 55.95% test accuracy and 0.466 macro-F1 on 974 images. This is a research result, not a measurement of the local browser model or the complete raw-image backend. Server mode is available only when a separate backend is configured and verified.</p>
+        <p>Our classifier using precomputed SCIN embeddings achieved 55.95% test accuracy and 0.466 macro-F1 on 974 images. This is a research result, not a measurement of the local browser model or the complete raw-image backend. The optional server mode uses a separately deployed Vercel FastAPI backend. The 55.95% figure describes the historical embedding-based test split, not clinical accuracy or a measured score for every uploaded photograph.</p>
       </Block>
 
       <Block title="Limitations">

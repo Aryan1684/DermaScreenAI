@@ -6,6 +6,7 @@
 [build.environment]
   NODE_VERSION = "22"
   NEXT_STATIC_EXPORT = "1"
+  NEXT_PUBLIC_DERM_API_URL = "https://dermascreenai-backend-aryan-9741.vercel.app"
   NEXT_TELEMETRY_DISABLED = "1"
 
 # Model files are large and never change between deploys of the same model version.

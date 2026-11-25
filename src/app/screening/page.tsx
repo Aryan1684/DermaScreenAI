@@ -116,7 +116,7 @@ export default function ScreeningPage() {
 
       {modelStatus === "unavailable" && (
         <div role="alert" className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900">
-          <strong>AI analysis is currently unavailable.</strong> The model metadata or one or more model weight files are missing, so no analysis can be performed. If you are the project owner, follow the model export steps in the README.
+          <strong>Local AI analysis is currently unavailable.</strong> The local model metadata or weights are missing. If configured, the separately consented server mode may still work. If you are the project owner, follow the model export steps in the README.
         </div>
       )}
 
@@ -146,7 +146,7 @@ export default function ScreeningPage() {
             )}
             <div className="mx-auto mt-5 h-8 w-8 animate-spin rounded-full border-4 border-teal-200 border-t-teal-700" />
             <p className="mt-3 font-semibold text-slate-800">{stage || "Starting…"}</p>
-            <p className="mt-1 text-sm text-slate-500">The first analysis downloads the model (a few MB) and may take a little longer. {remote ? "A prepared copy is sent to the research backend with your consent." : "Your photo stays on your device."}</p>
+            <p className="mt-1 text-sm text-slate-500">{remote ? "A prepared copy is sent to the research backend with your consent. A cold start may take several minutes." : "The first analysis downloads the local model (a few MB). Your photo stays on your device."}</p>
           </div>
         ) : (
           <>
@@ -156,7 +156,7 @@ export default function ScreeningPage() {
             </div>
             {DERM_API_URL && consent && <label className="mb-4 flex items-start gap-3 rounded-xl border border-slate-200 p-3 text-sm">
               <input type="checkbox" className="mt-1 h-5 w-5 shrink-0 accent-teal-700" checked={remote} onChange={e=>{setRemote(e.target.checked);setError(null);}}/>
-              <span><strong>Optional Derm Foundation research mode.</strong> I consent to sending a prepared copy of this photograph to the separate HTTPS inference host. The application strips file metadata and does not intentionally store photos on the backend, but hosting retention is not independently verified. Use only authorized non-identifiable demo images. Uncheck to use private local inference.</span>
+              <span><strong>Derm Foundation research mode (55.95% experimental test accuracy).</strong> I consent to sending a prepared copy of this photograph to the separate Vercel HTTPS inference host (dermascreenai-backend-aryan-9741.vercel.app). The application strips file metadata and does not intentionally store photos on the backend, but hosting retention is not independently verified. Use only authorized non-identifiable demo images. Uncheck to use private local inference.</span>
             </label>}
             <ImageUploader
               disabled={!consent}

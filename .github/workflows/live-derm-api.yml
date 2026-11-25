@@ -1,0 +1,40 @@
+name: Verify live Derm Foundation API and frontend
+on:
+  pull_request:
+    branches: [main]
+    paths: ['src/ml/dermRemote.ts','netlify.toml','.github/workflows/live-derm-api.yml']
+  push:
+    branches: [presentation-ready, main]
+    paths: ['src/ml/dermRemote.ts','netlify.toml','.github/workflows/live-derm-api.yml']
+permissions:
+  contents: read
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Live model health and public SCIN sample
+        run: |
+          set -eu
+          API=https://dermascreenai-backend-aryan-9741.vercel.app
+          curl --fail --max-time 300 -sS "$API/health" -o /tmp/health.json
+          python -c 'import json; d=json.load(open("/tmp/health.json")); assert d["ready"] and d["model"]=="derm-foundation" and d["experimental_test_accuracy"]>=.5; print(d)'
+          curl --fail --retry 2 -sSL https://storage.googleapis.com/dx-scin-public-data/dataset/images/3445096909671059178.png -o /tmp/sample.png
+          test "$(wc -c </tmp/sample.png)" -lt 4194304
+          curl --fail --max-time 300 -sS -D /tmp/headers -H 'Origin: https://dermascreenai.netlify.app' -H 'Content-Type: image/png' --data-binary @/tmp/sample.png "$API/predict" -o /tmp/result.json
+          grep -i '^access-control-allow-origin: https://dermascreenai.netlify.app' /tmp/headers
+          python -c 'import json,math; d=json.load(open("/tmp/result.json")); assert d["model"]=="derm-foundation" and d["classes"]==["eczema_dermatitis","psoriasis","fungal_infection","urticaria","insect_bite","acne_folliculitis","other"]; s=d["scores"]; assert len(s)==7 and all(math.isfinite(x) and 0<=x<=1 for x in s) and abs(sum(s)-1)<.001; print("Actual raw-image inference passed",d)'
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXT_STATIC_EXPORT: '1'
+      NEXT_PUBLIC_DERM_API_URL: https://dermascreenai-backend-aryan-9741.vercel.app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build

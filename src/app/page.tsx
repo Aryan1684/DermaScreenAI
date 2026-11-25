@@ -4,7 +4,7 @@ import Disclaimer from "@/components/Disclaimer";
 const STEPS = [
   { n: 1, title: "Consent and upload", text: "Read the consent notice, then choose a clear photograph of the affected skin area, or take one with your phone camera." },
   { n: 2, title: "Check the preview", text: "Make sure the area is visible, in focus and well lit. Replace the photo if needed." },
-  { n: 3, title: "AI analysis", text: "A deep-learning model running in your browser scores the image against its supported categories." },
+  { n: 3, title: "AI analysis", text: "The local model scores the image in your browser; an optional research backend is available with separate consent." },
   { n: 4, title: "Read and consult", text: "See possible categories with basic information – and a reminder to see a healthcare professional." },
 ];
 
@@ -93,7 +93,7 @@ export default function HomePage() {
             <p className="mt-3 text-slate-600">
               The website uses a convolutional neural network (<strong>EfficientNet-B0</strong>) that was pre-trained on ImageNet and then adapted
               with <strong>transfer learning</strong> on photographs from the public <strong>SCIN</strong> (Skin Condition Image Network) dataset.
-              Default predictions run locally with <strong>TensorFlow.js</strong>, so the website works as a static site without a dedicated inference server in local mode.
+              Default predictions run locally with <strong>TensorFlow.js</strong>. Optional <strong>Derm Foundation</strong> server inference requires separate consent and uses a research classifier with 55.95% historical test accuracy; this is not clinical accuracy.
             </p>
             <p className="mt-3 text-slate-600">
               The model is small and the data is limited, so its accuracy is modest. When the model score is below its experimental threshold, the app withholds category suggestions. Even accepted results can be wrong.
