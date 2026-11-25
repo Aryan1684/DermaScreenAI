@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ImageUploader from "@/components/ImageUploader";
@@ -17,6 +17,12 @@ export default function ScreeningPage() {
   const router = useRouter();
   const { file, previewUrl, setFile, reset, setResult } = useAnalysis();
   const [consent, setConsent] = useState(false);
+  const [acknowledged, setAcknowledged] = useState(false);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (dialog && !dialog.open) dialog.showModal();
+  }, []);
   const [busy, setBusy] = useState(false);
   const [stage, setStage] = useState("");
   const [error, setError] = useState<{ title: string; text: string } | null>(null);
@@ -69,9 +75,37 @@ export default function ScreeningPage() {
   }
 
   const blocked = !!quality?.blocking;
+  function declineConsent() {
+    setConsent(false); setAcknowledged(false); reset(); setQuality(null); setError(null);
+    dialogRef.current?.close(); router.push("/");
+  }
+  function openConsent() {
+    setAcknowledged(false); dialogRef.current?.showModal();
+  }
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+      <dialog ref={dialogRef} aria-labelledby="consent-title" aria-describedby="consent-summary" onCancel={(e) => { e.preventDefault(); declineConsent(); }} className="fixed inset-0 m-auto w-[calc(100%-2rem)] max-w-lg max-h-[90dvh] overflow-y-auto rounded-3xl border border-slate-200 bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/65 backdrop:backdrop-blur-sm">
+        <div className="p-5 sm:p-7">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-100 text-teal-800">
+            <svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/></svg>
+          </div>
+          <p className="text-xs font-bold uppercase tracking-widest text-teal-700">Your privacy comes first</p>
+          <h2 id="consent-title" className="mt-2 text-2xl font-bold tracking-tight">Before you start screening</h2>
+          <p id="consent-summary" className="mt-2 text-sm text-slate-600">Please review and accept the informed consent notice to continue.</p>
+          <ul className="mt-5 space-y-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-700">
+            <li><strong>Local processing:</strong> Your photo is analysed in your browser, not uploaded by the screening code.</li>
+            <li><strong>Educational use only:</strong> AI results can be incorrect and are not a medical diagnosis.</li>
+            <li><strong>Your choice:</strong> You may decline or withdraw consent and clear your image at any time before analysis.</li>
+          </ul>
+          <p className="mt-4 text-sm"><Link href="/privacy" className="font-medium text-teal-800 underline">Privacy policy</Link> · <Link href="/consent" className="font-medium text-teal-800 underline">Full consent notice</Link></p>
+          <label className="mt-5 flex items-start gap-3 rounded-xl border border-slate-200 p-3 text-sm leading-relaxed"><input autoFocus type="checkbox" checked={acknowledged} onChange={e=>setAcknowledged(e.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-teal-700"/><span>I am an adult, have permission to use the image, and voluntarily agree to local processing for educational purposes. I understand the limitations.</span></label>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <button type="button" className="btn btn-secondary" onClick={declineConsent}>Decline</button>
+            <button type="button" className="btn btn-primary" disabled={!acknowledged} onClick={() => { setConsent(true); dialogRef.current?.close(); }}>Accept &amp; continue</button>
+          </div>
+        </div>
+      </dialog>
       <p className="mb-2 text-xs font-bold uppercase tracking-widest text-teal-700">Step 1 of 2 · Prepare image</p>
       <h1 className="section-title">Skin image screening</h1>
       <p className="mt-2 text-slate-600">Upload or capture a photograph of the affected skin area, then press “Analyse image”.</p>
@@ -110,9 +144,9 @@ export default function ScreeningPage() {
           </div>
         ) : (
           <>
-            <div className="mb-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <label className="flex items-start gap-3 text-sm leading-relaxed text-slate-800"><input type="checkbox" checked={consent} onChange={(e) => { setConsent(e.target.checked); if (!e.target.checked) { reset(); setQuality(null); setError(null); } }} className="mt-1 h-5 w-5 shrink-0 accent-teal-700" /> <span>I voluntarily agree to local image processing for this educational prototype, have permission to use this image, and understand that results are not medical advice.</span></label>
-              <p className="mt-2 text-sm"><Link href="/privacy" className="text-teal-800 underline">Privacy policy</Link> · <Link href="/consent" className="text-teal-800 underline">Consent details</Link></p>
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-teal-200 bg-teal-50 p-4 text-sm text-teal-900">
+              <span className="font-medium">{consent ? "✓ Informed consent accepted" : "Informed consent required"}</span>
+              <button type="button" className="min-h-11 font-semibold underline underline-offset-4" onClick={consent ? () => { setConsent(false); reset(); setQuality(null); setError(null); openConsent(); } : openConsent}>{consent ? "Withdraw consent" : "Review consent"}</button>
             </div>
             <ImageUploader
               disabled={!consent}
