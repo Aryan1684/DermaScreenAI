@@ -20,7 +20,8 @@ export default function Footer() {
           </ul>
         </div>
         <div>
-          <h2 className="text-sm font-semibold text-slate-900">Privacy</h2>
+          <h2 className="text-sm font-semibold text-slate-900">Privacy &amp; consent</h2>
+          <div className="mt-3 flex flex-wrap gap-4 text-sm font-medium text-teal-800"><Link href="/privacy">Privacy policy</Link><Link href="/consent">Informed consent</Link></div>
           <p className="mt-3 text-sm text-slate-600">
             Photographs are analysed inside your browser and are never uploaded or stored. No login is needed.
           </p>

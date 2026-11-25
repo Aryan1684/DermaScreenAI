@@ -15,6 +15,9 @@ export function interpretScores(
   quality: QualityReport,
   inferenceMs: number,
 ): PredictionResult {
+  if (scores.length !== classes.length || classes.length === 0 || Array.from(scores).some((score) => !Number.isFinite(score) || score < 0 || score > 1)) {
+    throw new Error("The model returned invalid scores. No result can be shown.");
+  }
   const ranked: ScoredCategory[] = classes
     .map((id, i) => ({ id, score: scores[i] }))
     .sort((a, b) => b.score - a.score);
@@ -51,8 +54,7 @@ export async function analyseImage(objectUrl: string, onStage?: (stage: string) 
     const x = tf.browser.fromPixels(canvas).toFloat().expandDims(0);
     return model.predict(x) as TF.Tensor;
   });
-  const data = await scores.data();
-  scores.dispose();
+  const data = await scores.data().finally(() => scores.dispose());
   const ms = performance.now() - t0;
 
   return interpretScores(data, info.classes, info.rejectThreshold, quality, ms);

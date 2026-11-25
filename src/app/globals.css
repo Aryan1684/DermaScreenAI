@@ -37,7 +37,7 @@ body {
 @keyframes scan {
   0% { transform: translateY(0); opacity: 0.2; }
   50% { opacity: 1; }
-  100% { transform: translateY(100%); opacity: 0.2; }
+  100% { transform: translateY(calc(var(--scan-height, 14rem) - 4px)); opacity: 0.2; }
 }
 .scan-line {
   animation: scan 1.6s ease-in-out infinite alternate;
@@ -46,3 +46,13 @@ body {
   .scan-line, .animate-spin { animation: none !important; }
   html { scroll-behavior: auto; }
 }
+
+/* Responsive and accessible presentation polish */
+html { scroll-padding-top: 5rem; }
+body { overflow-wrap: anywhere; }
+main, .card { min-width: 0; }
+.card { padding: clamp(1rem, 3vw, 1.5rem); }
+.btn { white-space: normal; text-align: center; }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid #0891b2; outline-offset: 3px; }
+@media (max-width: 480px) { .btn { padding-inline: 1rem; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }

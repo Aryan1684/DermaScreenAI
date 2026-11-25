@@ -4,7 +4,7 @@ import type { PredictionResult } from "@/ml/types";
 function ScoreBar({ score, strong }: { score: number; strong?: boolean }) {
   return (
     <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100" aria-hidden="true">
-      <div className={`h-full rounded-full ${strong ? "bg-teal-600" : "bg-sky-400"}`} style={{ width: `${Math.max(2, score * 100)}%` }} />
+      <div className={`h-full rounded-full ${strong ? "bg-teal-600" : "bg-sky-400"}`} style={{ width: `${Math.max(0, Math.min(100, score * 100))}%` }} />
     </div>
   );
 }
@@ -58,7 +58,7 @@ export default function ResultCard({ result }: { result: PredictionResult }) {
         </section>
       )}
 
-      <section className="card" aria-label="Other possible categories">
+      {result.reliable && <section className="card" aria-label="Other possible categories">
         <h3 className="font-semibold text-slate-900">Other categories the model considered</h3>
         <ul className="mt-3 space-y-4">
           {(result.reliable ? others : result.ranked.slice(0, 3)).map((c) => (
@@ -72,10 +72,9 @@ export default function ResultCard({ result }: { result: PredictionResult }) {
           ))}
         </ul>
         <p className="mt-3 text-xs text-slate-500">
-          These categories are listed for information only. Several skin conditions look alike, so a close second does not mean it is less
-          likely to be correct.
+          These categories are listed for information only. Scores are not clinical probabilities. Similar-looking conditions may be confused by the model.
         </p>
-      </section>
+      </section>}
 
       <section className="card border-teal-200 bg-teal-50" aria-label="Medical guidance">
         <h3 className="font-semibold text-teal-900">Recommendation</h3>

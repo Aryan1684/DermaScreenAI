@@ -2,7 +2,7 @@ import Link from "next/link";
 import Disclaimer from "@/components/Disclaimer";
 
 const STEPS = [
-  { n: 1, title: "Upload or capture", text: "Choose a clear photograph of the affected skin area, or take one with your phone camera." },
+  { n: 1, title: "Consent and upload", text: "Read the consent notice, then choose a clear photograph of the affected skin area, or take one with your phone camera." },
   { n: 2, title: "Check the preview", text: "Make sure the area is visible, in focus and well lit. Replace the photo if needed." },
   { n: 3, title: "AI analysis", text: "A deep-learning model running in your browser scores the image against its supported categories." },
   { n: 4, title: "Read and consult", text: "See possible categories with basic information – and a reminder to see a healthcare professional." },
@@ -32,7 +32,7 @@ export default function HomePage() {
                 About the project
               </Link>
             </div>
-            <p className="mt-4 text-sm text-slate-500">No login · No personal details · Photos never leave your device</p>
+            <p className="mt-4 text-sm text-slate-500">No login · Local image processing · Informed consent</p>
           </div>
 
           <div className="card mx-auto w-full max-w-md">
@@ -96,7 +96,7 @@ export default function HomePage() {
               Predictions run locally with <strong>TensorFlow.js</strong>, so the website works as a static site without any server.
             </p>
             <p className="mt-3 text-slate-600">
-              The model is small and the data is limited, so its accuracy is modest. When it is not confident, the app says so instead of guessing.
+              The model is small and the data is limited, so its accuracy is modest. When the model score is below its experimental threshold, the app withholds category suggestions. Even accepted results can be wrong.
               See the <Link href="/about" className="font-semibold text-teal-700 underline">About page</Link> for the real evaluation numbers and limitations.
             </p>
           </div>

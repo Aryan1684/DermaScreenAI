@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ImageUploader from "@/components/ImageUploader";
 import Disclaimer from "@/components/Disclaimer";
@@ -15,6 +16,7 @@ type ModelStatus = "checking" | "ready" | "unavailable";
 export default function ScreeningPage() {
   const router = useRouter();
   const { file, previewUrl, setFile, reset, setResult } = useAnalysis();
+  const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [stage, setStage] = useState("");
   const [error, setError] = useState<{ title: string; text: string } | null>(null);
@@ -48,7 +50,7 @@ export default function ScreeningPage() {
   }, [previewUrl]);
 
   async function analyse() {
-    if (!previewUrl || !file) return;
+    if (!previewUrl || !file || !consent || busy || modelStatus !== "ready" || !quality || quality.blocking || error) return;
     setBusy(true);
     setError(null);
     try {
@@ -70,6 +72,7 @@ export default function ScreeningPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+      <p className="mb-2 text-xs font-bold uppercase tracking-widest text-teal-700">Step 1 of 2 · Prepare image</p>
       <h1 className="section-title">Skin image screening</h1>
       <p className="mt-2 text-slate-600">Upload or capture a photograph of the affected skin area, then press “Analyse image”.</p>
 
@@ -93,7 +96,7 @@ export default function ScreeningPage() {
         {busy ? (
           <div className="py-4 text-center" role="status" aria-live="polite">
             {previewUrl && (
-              <div className="relative mx-auto h-56 w-56 overflow-hidden rounded-2xl border border-slate-200">
+              <div className="relative mx-auto h-56 w-56 max-w-full overflow-hidden rounded-2xl border border-slate-200">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={previewUrl} alt="Photograph being analysed" className="h-full w-full object-cover" />
                 <div className="absolute inset-0">
@@ -107,7 +110,12 @@ export default function ScreeningPage() {
           </div>
         ) : (
           <>
+            <div className="mb-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <label className="flex items-start gap-3 text-sm leading-relaxed text-slate-800"><input type="checkbox" checked={consent} onChange={(e) => { setConsent(e.target.checked); if (!e.target.checked) { reset(); setQuality(null); setError(null); } }} className="mt-1 h-5 w-5 shrink-0 accent-teal-700" /> <span>I voluntarily agree to local image processing for this educational prototype, have permission to use this image, and understand that results are not medical advice.</span></label>
+              <p className="mt-2 text-sm"><Link href="/privacy" className="text-teal-800 underline">Privacy policy</Link> · <Link href="/consent" className="text-teal-800 underline">Consent details</Link></p>
+            </div>
             <ImageUploader
+              disabled={!consent}
               previewUrl={previewUrl}
               onSelect={(selectedFile) => {
                 setQuality(null);
@@ -148,9 +156,11 @@ export default function ScreeningPage() {
               </div>
             )}
 
-            <button type="button" className="btn btn-primary mt-6 w-full" disabled={!file || blocked || modelStatus === "unavailable"} onClick={analyse}>
+            <button type="button" className="btn btn-primary mt-6 w-full" disabled={!consent || !file || !quality || blocked || !!error || modelStatus !== "ready"} onClick={analyse}>
               Analyse image
             </button>
+            {modelStatus === "checking" && <p role="status" className="mt-2 text-center text-sm text-slate-600">Checking model availability…</p>}
+            {!consent && <p className="mt-2 text-center text-sm text-slate-600">Accept informed consent to choose a photograph.</p>}
             {!file && <p className="mt-2 text-center text-xs text-slate-500">Choose a photograph first to enable analysis.</p>}
           </>
         )}

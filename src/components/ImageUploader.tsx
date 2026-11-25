@@ -17,6 +17,7 @@ export default function ImageUploader({ previewUrl, onSelect, onRemove, disabled
   const [dragging, setDragging] = useState(false);
 
   async function handleFiles(list: FileList | null) {
+    if (disabled) return;
     const file = list?.[0];
     if (!file) return;
     const check = await validateFile(file);
@@ -40,6 +41,7 @@ export default function ImageUploader({ previewUrl, onSelect, onRemove, disabled
       <input
         ref={fileRef}
         type="file"
+        disabled={disabled}
         accept="image/jpeg,image/png,.jpg,.jpeg,.png"
         className="hidden"
         data-testid="file-input"
@@ -51,7 +53,8 @@ export default function ImageUploader({ previewUrl, onSelect, onRemove, disabled
       <input
         ref={cameraRef}
         type="file"
-        accept="image/*"
+        disabled={disabled}
+        accept="image/jpeg,image/png"
         capture="environment"
         className="hidden"
         data-testid="camera-input"
@@ -70,7 +73,7 @@ export default function ImageUploader({ previewUrl, onSelect, onRemove, disabled
         <div
           onDragOver={(e) => {
             e.preventDefault();
-            setDragging(true);
+            if (!disabled) setDragging(true);
           }}
           onDragLeave={() => setDragging(false)}
           onDrop={onDrop}

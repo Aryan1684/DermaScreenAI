@@ -9,6 +9,8 @@ const LINKS = [
   { href: "/", label: "Home" },
   { href: "/screening", label: "Skin Screening" },
   { href: "/about", label: "About" },
+  { href: "/privacy", label: "Privacy" },
+  { href: "/consent", label: "Consent" },
 ];
 
 export default function Navbar() {
@@ -18,13 +20,13 @@ export default function Navbar() {
     href === "/" ? pathname === "/" : pathname === href || (href === "/screening" && pathname === "/results");
 
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
+    <header onKeyDown={(e) => { if (e.key === "Escape") setOpen(false); }} className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6" aria-label="Main">
         <Link href="/" aria-label="DermaScreen AI home" onClick={() => setOpen(false)}>
           <Logo />
         </Link>
 
-        <ul className="hidden items-center gap-1 md:flex">
+        <ul className="hidden items-center gap-1 lg:flex">
           {LINKS.map((l) => (
             <li key={l.href}>
               <Link
@@ -42,9 +44,10 @@ export default function Navbar() {
 
         <button
           type="button"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-slate-300 md:hidden"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-slate-300 lg:hidden"
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
+          aria-controls="mobile-navigation"
           onClick={() => setOpen((o) => !o)}
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -54,7 +57,7 @@ export default function Navbar() {
       </nav>
 
       {open && (
-        <ul className="border-t border-slate-200 bg-white px-4 pb-3 md:hidden">
+        <ul id="mobile-navigation" className="border-t border-slate-200 bg-white px-4 pb-3 lg:hidden">
           {LINKS.map((l) => (
             <li key={l.href}>
               <Link
