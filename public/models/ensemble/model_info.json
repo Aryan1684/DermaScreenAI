@@ -1,0 +1,97 @@
+{
+  "trained": true,
+  "version": "ensemble-onnx-1",
+  "backbone": "MobileNetV2 + EfficientNetV2-B0",
+  "inputSize": 224,
+  "classes": [
+    "eczema_dermatitis",
+    "psoriasis",
+    "fungal_infection",
+    "urticaria",
+    "insect_bite",
+    "acne_folliculitis",
+    "other"
+  ],
+  "dataset": "SCIN",
+  "trainedOn": "GitHub Actions run 45554441628",
+  "rejectThreshold": 0.6,
+  "images": {
+    "train": 2911,
+    "val": 982,
+    "test": 974
+  },
+  "metrics": {
+    "test_accuracy": 0.3655030800821355,
+    "test_macro_f1": 0.1682281804947047,
+    "majority_class_baseline_accuracy": 0.42299794661190965,
+    "test_coverage_at_threshold": 0.351129363449692,
+    "test_accuracy_on_accepted": 0.4766081871345029,
+    "per_class": {
+      "eczema_dermatitis": {
+        "precision": 0.47217806041335453,
+        "recall": 0.720873786407767,
+        "f1-score": 0.5706051873198847,
+        "support": 412.0
+      },
+      "psoriasis": {
+        "precision": 0.09090909090909091,
+        "recall": 0.0425531914893617,
+        "f1-score": 0.057971014492753624,
+        "support": 47.0
+      },
+      "fungal_infection": {
+        "precision": 0.0625,
+        "recall": 0.014492753623188406,
+        "f1-score": 0.023529411764705882,
+        "support": 69.0
+      },
+      "urticaria": {
+        "precision": 0.15555555555555556,
+        "recall": 0.07368421052631578,
+        "f1-score": 0.1,
+        "support": 95.0
+      },
+      "insect_bite": {
+        "precision": 0.15789473684210525,
+        "recall": 0.0379746835443038,
+        "f1-score": 0.061224489795918366,
+        "support": 79.0
+      },
+      "acne_folliculitis": {
+        "precision": 0.2459016393442623,
+        "recall": 0.15625,
+        "f1-score": 0.1910828025477707,
+        "support": 96.0
+      },
+      "other": {
+        "precision": 0.17032967032967034,
+        "recall": 0.17613636363636365,
+        "f1-score": 0.17318435754189945,
+        "support": 176.0
+      },
+      "accuracy": 0.3655030800821355,
+      "macro avg": {
+        "precision": 0.19360982191343415,
+        "recall": 0.17456642703247147,
+        "f1-score": 0.1682281804947047,
+        "support": 974.0
+      },
+      "weighted avg": {
+        "precision": 0.29153863399014845,
+        "recall": 0.3655030800821355,
+        "f1-score": 0.310676216565251,
+        "support": 974.0
+      }
+    },
+    "train_class_counts": {},
+    "test_class_counts": {
+      "eczema_dermatitis": 412,
+      "psoriasis": 47,
+      "fungal_infection": 69,
+      "urticaria": 95,
+      "insect_bite": 79,
+      "acne_folliculitis": 96,
+      "other": 176
+    }
+  }
+}
