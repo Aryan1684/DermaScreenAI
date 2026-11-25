@@ -1,0 +1,48 @@
+name: Train and evaluate skin classifier
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'training/train_fast.py'
+      - '.github/workflows/accuracy-training.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: skin-training-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  train:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      TF_CPP_MIN_LOG_LEVEL: '2'
+      TF_NUM_INTRAOP_THREADS: '4'
+      TF_NUM_INTEROP_THREADS: '2'
+      OMP_NUM_THREADS: '4'
+      OPENBLAS_NUM_THREADS: '2'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install ML environment
+        run: python -m pip install tensorflow-cpu==2.15.1 numpy==1.26.4 scikit-learn==1.5.2 pillow==10.4.0
+      - name: Download public SCIN labels and images
+        run: |
+          mkdir -p /tmp/scin
+          curl --fail --retry 3 -L https://storage.googleapis.com/dx-scin-public-data/dataset/scin_cases.csv -o /tmp/scin/cases.csv
+          curl --fail --retry 3 -L https://storage.googleapis.com/dx-scin-public-data/dataset/scin_labels.csv -o /tmp/scin/labels.csv
+          python training/prepare_data.py --csv_dir /tmp/scin --out /tmp/scin/data
+      - name: Train and evaluate independent transfer-learning models
+        run: python training/train_fast.py --data /tmp/scin/data --out training-output
+      - name: Publish measured metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skin-training-results
+          path: training-output/
+          if-no-files-found: warn
+          retention-days: 7
