@@ -8,8 +8,8 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.concurrency import run_in_threadpool
 
-ROOT=Path(os.environ.get("DERM_WORK_DIR","/tmp/derm-runtime"))
-MAX_BYTES=10*1024*1024
+ROOT=Path(__file__).resolve().parent.parent/"runtime_assets"
+MAX_BYTES=4*1024*1024
 Image.MAX_IMAGE_PIXELS=20_000_000
 warnings.simplefilter("error",Image.DecompressionBombWarning)
 CLASSES=["eczema_dermatitis","psoriasis","fungal_infection","urticaria","insect_bite","acne_folliculitis","other"]
@@ -26,7 +26,7 @@ if classes!=CLASSES or coef.shape!=(7,6144) or intercept.shape!=(7,) or scaling 
 if not all(np.isfinite(x).all() for x in (coef,intercept,mean,scale)) or (scale<=0).any(): raise RuntimeError("Invalid head")
 metrics=json.loads((ROOT/"head/metrics.json").read_text())
 if not metrics.get("target_met"): raise RuntimeError("Classifier did not meet research evaluation gate")
-model=tf.saved_model.load((ROOT/"model_path.txt").read_text().strip())
+model=tf.saved_model.load(str(ROOT/"model"))
 infer=model.signatures["serving_default"]
 
 def embedding(raw):

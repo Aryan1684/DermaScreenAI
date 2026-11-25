@@ -1,0 +1,11 @@
+{
+  "framework": "fastapi",
+  "fluid": true,
+  "functions": {
+    "main.py": {
+      "maxDuration": 300,
+      "includeFiles": "runtime_assets/**",
+      "excludeFiles": "{training/**,**/__pycache__/**}"
+    }
+  }
+}
