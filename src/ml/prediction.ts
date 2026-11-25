@@ -1,7 +1,5 @@
 import type * as TF from "@tensorflow/tfjs";
-import { loadEnsemble, predictEnsemble } from "./ensemble";
 import { loadModel } from "./model";
-import { DERM_CLASSES, predictDermRemote } from "./dermRemote";
 import { SCREENING_THRESHOLD } from "./screeningConfig";
 import { assessQuality, imageToCanvas, loadImageElement } from "./preprocessing";
 import type { ConditionId, PredictionResult, QualityReport, ScoredCategory } from "./types";
@@ -37,7 +35,7 @@ export function interpretScores(
 }
 
 /** Full pipeline: decode -> quality check -> resize -> (0..255 float) tensor -> TF.js inference -> ranked result. */
-export async function analyseImage(objectUrl: string, onStage?: (stage: string) => void, remote = false): Promise<PredictionResult> {
+export async function analyseImage(objectUrl: string, onStage?: (stage: string) => void): Promise<PredictionResult> {
   onStage?.("Loading the AI model…");
 
   onStage?.("Preparing your photograph…");
@@ -46,25 +44,12 @@ export async function analyseImage(objectUrl: string, onStage?: (stage: string) 
   if (quality.blocking) {
     throw new Error(quality.issues.find((i) => i.severity === "blocking")!.message);
   }
-  if (remote) {
-    onStage?.("Analysing using Derm Foundation backend…");
-    const t = performance.now();
-    const scores = await predictDermRemote(img);
-    return {...interpretScores(scores, DERM_CLASSES, SCREENING_THRESHOLD, quality, performance.now()-t), modelCount:1, modelName:"derm-foundation"};
-  }
   const { tf, model, info } = await loadModel();
   const canvas = imageToCanvas(img, info.inputSize);
 
   onStage?.("Analysing the image…");
   await new Promise((r) => setTimeout(r, 30)); // let the loading animation paint
   const t0 = performance.now();
-  const ensemble = await loadEnsemble(tf, info.classes);
-  if (ensemble) {
-    onStage?.("Comparing two independent models…");
-    const combined = await predictEnsemble(tf, imageToCanvas(img, 224), ensemble);
-    const result = interpretScores(combined.scores, info.classes, ensemble.config.rejectThreshold, quality, performance.now()-t0);
-    return {...result, reliable: result.reliable && combined.agreement, modelCount: 2, disagreement: !combined.agreement};
-  }
   const scores = tf.tidy(() => {
     // The model contains EfficientNet's own normalisation layers, so it expects raw 0..255 RGB values.
     const x = tf.browser.fromPixels(canvas).toFloat().expandDims(0);

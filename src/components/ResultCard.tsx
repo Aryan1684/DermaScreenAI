@@ -15,7 +15,7 @@ export default function ResultCard({ result }: { result: PredictionResult }) {
 
   return (
     <div className="min-w-0 space-y-3 sm:space-y-5">
-      <p className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">{result.modelName === "derm-foundation" ? "Google Derm Foundation · server inference (research)" : result.modelCount === 2 ? "Experimental two-model ensemble" : "Single trained model · EfficientNet-B0"}</p>
+      <p className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">Single trained model · EfficientNet-B0</p>
       {result.reliable ? (
         <section className="card" aria-label="Predicted category">
           <p className="text-xs font-semibold uppercase tracking-wider text-teal-700">Highest-scoring category · experimental</p>

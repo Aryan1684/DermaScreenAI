@@ -9,7 +9,6 @@ import { useAnalysis } from "@/components/AnalysisContext";
 import { checkModelAssets, fetchModelInfo, ModelUnavailableError } from "@/ml/model";
 import { analyseImage } from "@/ml/prediction";
 import { assessQuality, loadImageElement } from "@/ml/preprocessing";
-import { DERM_API_URL } from "@/ml/dermRemote";
 import type { QualityReport } from "@/ml/types";
 
 type ModelStatus = "checking" | "ready" | "unavailable";
@@ -18,7 +17,6 @@ export default function ScreeningPage() {
   const router = useRouter();
   const { file, previewUrl, setFile, reset, setResult } = useAnalysis();
   const [consent, setConsent] = useState(false);
-  const [remote, setRemote] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -58,11 +56,11 @@ export default function ScreeningPage() {
   }, [previewUrl]);
 
   async function analyse() {
-    if (!previewUrl || !file || !consent || busy || (!remote && modelStatus !== "ready") || !quality || quality.blocking || error) return;
+    if (!previewUrl || !file || !consent || busy || modelStatus !== "ready" || !quality || quality.blocking || error) return;
     setBusy(true);
     setError(null);
     try {
-      const result = await analyseImage(previewUrl, setStage, remote);
+      const result = await analyseImage(previewUrl, setStage);
       setResult(result);
       router.push("/results");
     } catch (e) {
@@ -78,7 +76,7 @@ export default function ScreeningPage() {
 
   const blocked = !!quality?.blocking;
   function declineConsent() {
-    setConsent(false); setRemote(false); setAcknowledged(false); reset(); setQuality(null); setError(null);
+    setConsent(false); setAcknowledged(false); reset(); setQuality(null); setError(null);
     dialogRef.current?.close(); router.push("/");
   }
   function openConsent() {
@@ -97,7 +95,7 @@ export default function ScreeningPage() {
           <h2 id="consent-title" className="mt-2 text-2xl font-bold tracking-tight">Before you start screening</h2>
           <p id="consent-summary" className="mt-2 text-sm text-slate-600">Please review and accept the informed consent notice to continue.</p>
           <ul className="mt-5 space-y-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-700">
-            <li><strong>Local processing:</strong> Local mode analyses your photo in your browser. Optional server mode, if available, requires separate consent before a copy is sent.</li>
+            <li><strong>Local processing:</strong> Your photo is analysed inside your browser, without uploading it.</li>
             <li><strong>Educational use only:</strong> AI results can be incorrect and are not a medical diagnosis.</li>
             <li><strong>Your choice:</strong> You may decline or withdraw consent and clear your image at any time before analysis.</li>
           </ul>
@@ -116,7 +114,7 @@ export default function ScreeningPage() {
 
       {modelStatus === "unavailable" && (
         <div role="alert" className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900">
-          <strong>Local AI analysis is currently unavailable.</strong> The local model metadata or weights are missing. If configured, the separately consented server mode may still work. If you are the project owner, follow the model export steps in the README.
+          <strong>Local AI analysis is currently unavailable.</strong> The model metadata or weights are missing. If you are the project owner, follow the model export steps in the README.
         </div>
       )}
 
@@ -146,18 +144,14 @@ export default function ScreeningPage() {
             )}
             <div className="mx-auto mt-5 h-8 w-8 animate-spin rounded-full border-4 border-teal-200 border-t-teal-700" />
             <p className="mt-3 font-semibold text-slate-800">{stage || "Starting…"}</p>
-            <p className="mt-1 text-sm text-slate-500">{remote ? "A prepared copy is sent to the research backend with your consent. A cold start may take several minutes." : "The first analysis downloads the local model (a few MB). Your photo stays on your device."}</p>
+            <p className="mt-1 text-sm text-slate-500">The first analysis downloads the local model (a few MB). Your photo stays on your device.</p>
           </div>
         ) : (
           <>
             <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-teal-200 bg-teal-50 p-4 text-sm text-teal-900">
               <span className="font-medium">{consent ? "✓ Informed consent accepted" : "Informed consent required"}</span>
-              <button type="button" className="min-h-11 font-semibold underline underline-offset-4" onClick={consent ? () => { setConsent(false); setRemote(false); reset(); setQuality(null); setError(null); openConsent(); } : openConsent}>{consent ? "Withdraw consent" : "Review consent"}</button>
+              <button type="button" className="min-h-11 font-semibold underline underline-offset-4" onClick={consent ? () => { setConsent(false); reset(); setQuality(null); setError(null); openConsent(); } : openConsent}>{consent ? "Withdraw consent" : "Review consent"}</button>
             </div>
-            {DERM_API_URL && consent && <label className="mb-4 flex items-start gap-3 rounded-xl border border-slate-200 p-3 text-sm">
-              <input type="checkbox" className="mt-1 h-5 w-5 shrink-0 accent-teal-700" checked={remote} onChange={e=>{setRemote(e.target.checked);setError(null);}}/>
-              <span><strong>Derm Foundation research mode (55.95% experimental test accuracy).</strong> I consent to sending a prepared copy of this photograph to the separate Vercel HTTPS inference host (dermascreenai-backend-aryan-9741.vercel.app). The application strips file metadata and does not intentionally store photos on the backend, but hosting retention is not independently verified. Use only authorized non-identifiable demo images. Uncheck to use private local inference.</span>
-            </label>}
             <ImageUploader
               disabled={!consent}
               previewUrl={previewUrl}
@@ -200,7 +194,7 @@ export default function ScreeningPage() {
               </div>
             )}
 
-            <button type="button" className="btn btn-primary mt-6 w-full" disabled={!consent || !file || !quality || blocked || !!error || (!remote && modelStatus !== "ready")} onClick={analyse}>
+            <button type="button" className="btn btn-primary mt-6 w-full" disabled={!consent || !file || !quality || blocked || !!error || modelStatus !== "ready"} onClick={analyse}>
               Analyse image
             </button>
             {modelStatus === "checking" && <p role="status" className="mt-2 text-center text-sm text-slate-600">Checking model availability…</p>}
@@ -211,7 +205,7 @@ export default function ScreeningPage() {
       </section>
 
       <p className="mt-4 text-center text-sm text-slate-500">
-        {remote ? "Server mode: the prepared photo is sent to the configured research backend for inference." : "Local mode: the photograph is processed inside your browser without an image upload."}
+        Local mode: the photograph is processed inside your browser without an image upload.
       </p>
       <Disclaimer className="mt-6" />
     </div>

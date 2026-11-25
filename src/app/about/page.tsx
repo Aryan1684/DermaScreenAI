@@ -35,7 +35,7 @@ export default function AboutPage() {
         <p>
           This is an academic web application that lets a user upload or capture a photograph of a skin area and receive preliminary
           information about possible skin-condition categories. A deep-learning image classifier runs inside the browser using TensorFlow.js,
-          so local screening needs no prediction server. Optional server-based Derm Foundation research mode requires separate consent and a configured backend.
+          so screening needs no prediction server.
         </p>
       </Block>
 
@@ -164,10 +164,6 @@ export default function AboutPage() {
             </p>
           </>
         )}
-      </Block>
-
-      <Block title="Derm Foundation research evaluation">
-        <p>Our classifier using precomputed SCIN embeddings achieved 55.95% test accuracy and 0.466 macro-F1 on 974 images. This is a research result, not a measurement of the local browser model or the complete raw-image backend. The optional server mode uses a separately deployed Vercel FastAPI backend. The 55.95% figure describes the historical embedding-based test split, not clinical accuracy or a measured score for every uploaded photograph.</p>
       </Block>
 
       <Block title="Limitations">

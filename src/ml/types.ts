@@ -55,6 +55,5 @@ export interface PredictionResult {
   quality: QualityReport;
   inferenceMs: number;
   modelCount?: number;
-  modelName?: "derm-foundation";
   disagreement?: boolean;
 }

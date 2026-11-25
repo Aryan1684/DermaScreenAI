@@ -38,7 +38,7 @@ export default function ResultsPage() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={previewUrl} alt="The photograph you uploaded" className="max-h-[min(38dvh,384px)] w-full rounded-xl object-contain" />
             <p className="mt-2 text-center text-xs text-slate-500">Your photograph (held in this tab’s memory)</p>
-            <p className="mt-1 text-center text-xs text-slate-400">Analysed in {Math.round(result.inferenceMs)} ms {result.modelName === "derm-foundation" ? "(server mode, including network time)" : "on your device"}</p>
+            <p className="mt-1 text-center text-xs text-slate-400">Analysed in {Math.round(result.inferenceMs)} ms on your device</p>
           </div>
         </div>
         <div className="order-1 min-w-0 lg:order-2 lg:col-span-3">
