@@ -1,0 +1,36 @@
+name: Compact 50 percent SCIN classifier
+on:
+  push:
+    branches: [compact-50]
+    paths: ['training/train_compact.py', '.github/workflows/compact-50.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      OPENBLAS_NUM_THREADS: '2'
+      OMP_NUM_THREADS: '4'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install numpy==1.26.4 onnxruntime==1.20.1 scikit-learn==1.5.2 pillow==10.4.0 huggingface_hub==0.27.1
+      - name: Prepare case-separated SCIN data
+        run: |
+          mkdir -p /tmp/scin
+          curl -fsSL --retry 3 https://storage.googleapis.com/dx-scin-public-data/dataset/scin_cases.csv -o /tmp/scin/cases.csv
+          curl -fsSL --retry 3 https://storage.googleapis.com/dx-scin-public-data/dataset/scin_labels.csv -o /tmp/scin/labels.csv
+          python training/prepare_data.py --csv_dir /tmp/scin --out /tmp/scin/data
+      - run: python training/train_compact.py --data /tmp/scin/data --out compact-output
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: compact-evaluation
+          path: compact-output/
+          if-no-files-found: warn
+          retention-days: 7
