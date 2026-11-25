@@ -27,7 +27,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install tensorflow-cpu==2.15.1 tf2onnx==1.16.1 onnxruntime==1.20.1 numpy==1.26.4 scikit-learn==1.5.2 pillow==10.4.0
+      - run: pip install tensorflow-cpu==2.15.1 tf2onnx==1.16.1 onnx==1.17.0 onnxruntime==1.20.1 numpy==1.26.4 scikit-learn==1.5.2 pillow==10.4.0
       - name: Recover same historical test set
         run: |
           mkdir -p /tmp/scin

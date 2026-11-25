@@ -16,16 +16,46 @@ rows=json.loads((Path(a.data)/"index.json").read_text())
 test=[x for x in rows if x[3]=="test"];assert len(test)==974
 y=np.array([classes.index(x[2]) for x in test])
 def pixels(row):
- return np.asarray(Image.open(row[0]).convert("RGB"),dtype=np.float32)[None,...]
+ return tf.image.resize(tf.io.decode_jpeg(tf.io.read_file(row[0]),channels=3),(224,224)).numpy()[None,...]
+def exportable_model(original):
+ # Keras Normalization contains captured EagerTensor mean/variance, which
+ # tf2onnx can incorrectly expose as additional mandatory graph inputs.
+ # Replace with mathematically equivalent inference-mode BatchNormalization
+ # using tracked variables, keeping all trained weights unchanged.
+ def clone_network(network):
+  def clone_layer(layer):
+   if isinstance(layer,tf.keras.layers.Normalization):
+    return tf.keras.layers.BatchNormalization(axis=-1,epsilon=0.0,name=layer.name,trainable=False)
+   if isinstance(layer,tf.keras.Model):
+    return clone_network(layer)
+   return layer.__class__.from_config(layer.get_config())
+  cloned=tf.keras.models.clone_model(network,clone_function=clone_layer)
+  for old in network.layers:
+   if isinstance(old,tf.keras.layers.InputLayer):continue
+   new=cloned.get_layer(old.name)
+   if isinstance(old,tf.keras.layers.Normalization):
+    mean=np.asarray(old.mean).reshape(-1).astype(np.float32)
+    variance=np.asarray(old.variance).reshape(-1).astype(np.float32)
+    divisor=np.maximum(np.sqrt(variance),tf.keras.backend.epsilon())
+    new.set_weights([np.ones_like(mean),np.zeros_like(mean),mean,divisor**2])
+   elif not isinstance(old,tf.keras.Model) and old.get_weights():
+    new.set_weights(old.get_weights())
+  return cloned
+ return clone_network(original)
 pred=[];samples=[]
 for name in ("mobilenetv2","efficientnetv2b0"):
  m=tf.keras.models.load_model(source/(name+".keras"),compile=False)
+ export_model=exportable_model(m) if name=="efficientnetv2b0" else m
+ for row in test[:16]:
+  x=pixels(row);diff=float(np.max(np.abs(m(x,training=False).numpy()-export_model(x,training=False).numpy())))
+  assert diff<.001,("Normalization rewrite changed output",name,diff)
  @tf.function(input_signature=[tf.TensorSpec([1,224,224,3],tf.float32,name="image")])
- def serve(image):return m(image,training=False)
+ def serve(image):return export_model(image,training=False)
  file=out/(name+".onnx")
  tf2onnx.convert.from_function(serve,input_signature=serve.input_signature,opset=17,output_path=str(file))
  opts=ort.SessionOptions();opts.intra_op_num_threads=2;opts.inter_op_num_threads=1
  sess=ort.InferenceSession(str(file),sess_options=opts,providers=["CPUExecutionProvider"])
+ assert len(sess.get_inputs())==1,("Unexpected graph inputs",[x.name for x in sess.get_inputs()])
  results=[]
  for i,row in enumerate(test):
   x=pixels(row);actual=sess.run(None,{sess.get_inputs()[0].name:x})[0][0]
@@ -39,7 +69,7 @@ for name in ("mobilenetv2","efficientnetv2b0"):
  x=np.random.default_rng(42).integers(0,256,size=(1,224,224,3),dtype=np.uint8).astype(np.float32)
  scores=sess.run(None,{sess.get_inputs()[0].name:x})[0][0]
  samples.append({"name":name,"scores":scores.tolist()})
- del m,sess
+ del m,export_model,sess
  tf.keras.backend.clear_session()
 scores=(pred[0]+pred[1])*.5
 acc=float(accuracy_score(y,scores.argmax(1)));f1=float(f1_score(y,scores.argmax(1),average="macro",zero_division=0))
