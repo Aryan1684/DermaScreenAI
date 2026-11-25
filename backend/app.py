@@ -63,7 +63,7 @@ async def predict(request:Request):
         data=bytearray()
         async for chunk in request.stream():
             data.extend(chunk)
-            if len(data)>MAX_BYTES: raise HTTPException(413,"Image exceeds 10 MB")
+            if len(data)>MAX_BYTES: raise HTTPException(413,"Image exceeds 4 MB")
         try: result=await run_in_threadpool(lambda:scores_from_embedding(embedding(bytes(data))))
         except (ValueError,OSError,Image.DecompressionBombError,Image.DecompressionBombWarning): raise HTTPException(400,"Invalid or unsupported photograph")
         except Exception: raise HTTPException(503,"Inference unavailable")
