@@ -1,0 +1,66 @@
+name: Derm Foundation compression and 2 GB runtime
+on:
+  push:
+    branches: [derm-compression]
+    paths: ['training/compress_derm.py', '.github/workflows/derm-compression.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      TF_CPP_MIN_LOG_LEVEL: '2'
+      TF_NUM_INTRAOP_THREADS: '1'
+      TF_NUM_INTEROP_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      PYTHONUNBUFFERED: '1'
+      HF_HOME: /tmp/derm-hf-cache
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r backend/requirements.txt
+      - name: Prepare original authorized weights and classifier
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python backend/prepare_runtime.py
+      - name: Original model under 2 GiB RAM and one CPU
+        continue-on-error: true
+        run: |
+          mkdir -p compression-report
+          docker build -t derm-memory-test -f backend/Dockerfile .
+          curl -fsSL --retry 3 https://storage.googleapis.com/dx-scin-public-data/dataset/images/3445096909671059178.png -o /tmp/sample.png
+          docker run -d --name derm-memory --memory=2g --memory-swap=2g --cpus=1 -p 127.0.0.1:7860:7860 -e TF_NUM_INTRAOP_THREADS=1 -e TF_NUM_INTEROP_THREADS=1 -e OPENBLAS_NUM_THREADS=1 -e OMP_NUM_THREADS=1 -v /tmp/derm-runtime:/tmp/derm-runtime:ro -v /tmp/derm-hf-cache:/tmp/derm-hf-cache:ro derm-memory-test python -m uvicorn backend.app:app --host 0.0.0.0 --port 7860 --no-access-log
+          set +e
+          ready=0
+          for i in $(seq 1 120); do
+            if curl -fsS http://127.0.0.1:7860/health > compression-report/original-health.json; then ready=1; break; fi
+            if [ "$(docker inspect -f '{{.State.Running}}' derm-memory)" != true ]; then break; fi
+            sleep 2
+          done
+          result=1
+          if [ "$ready" = 1 ]; then
+            curl --max-time 300 --fail -sS -H 'Origin: https://dermascreenai.netlify.app' -H 'Content-Type: image/png' --data-binary @/tmp/sample.png http://127.0.0.1:7860/predict > compression-report/original-predict.json
+            result=$?
+          fi
+          docker exec derm-memory cat /sys/fs/cgroup/memory.peak > compression-report/original-memory-peak.txt 2>/dev/null
+          docker inspect -f '{{json .State}}' derm-memory > compression-report/original-container-state.json
+          docker logs derm-memory 2>&1 | tail -60
+          docker rm -f derm-memory
+          echo "$result" > compression-report/original-inference-exit.txt
+          exit "$result"
+      - name: FP16 conversion and held-out raw-image evaluation
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python -m training.compress_derm
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: compression-metrics-only
+          path: compression-report/
+          if-no-files-found: warn
+          retention-days: 7
