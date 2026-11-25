@@ -1,12 +1,13 @@
 import type * as TF from "@tensorflow/tfjs";
 import { loadEnsemble, predictEnsemble } from "./ensemble";
 import { loadModel } from "./model";
+import { SCREENING_THRESHOLD } from "./screeningConfig";
 import { assessQuality, imageToCanvas, loadImageElement } from "./preprocessing";
 import type { ConditionId, PredictionResult, QualityReport, ScoredCategory } from "./types";
 
 /**
  * Turns raw model scores into a ranked list and decides whether the result is reliable enough to show.
- * The "reliable" rule uses a threshold that was chosen on the validation set during training.
+ * The acceptance rule uses the configured screening threshold; it is not a clinical reliability guarantee.
  * A poor-quality photograph (warnings) raises the bar slightly. Scores are NOT calibrated probabilities.
  */
 export function interpretScores(
@@ -65,5 +66,5 @@ export async function analyseImage(objectUrl: string, onStage?: (stage: string) 
   const data = await scores.data().finally(() => scores.dispose());
   const ms = performance.now() - t0;
 
-  return {...interpretScores(data, info.classes, info.rejectThreshold, quality, ms), modelCount: 1};
+  return {...interpretScores(data, info.classes, SCREENING_THRESHOLD, quality, ms), modelCount: 1};
 }

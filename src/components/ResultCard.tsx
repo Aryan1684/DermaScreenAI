@@ -18,7 +18,7 @@ export default function ResultCard({ result }: { result: PredictionResult }) {
       <p className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">{result.modelCount === 2 ? "Experimental two-model ensemble" : "Single trained model · EfficientNet-B0"}</p>
       {result.reliable ? (
         <section className="card" aria-label="Predicted category">
-          <p className="text-xs font-semibold uppercase tracking-wider text-teal-700">Highest-scoring category</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-teal-700">Highest-scoring category · experimental</p>
           <h2 className="mt-1 text-xl sm:text-2xl font-bold text-slate-900">{top.name}</h2>
           <div className="mt-4">
             <div className="mb-1 flex items-baseline justify-between text-sm">
@@ -27,7 +27,7 @@ export default function ResultCard({ result }: { result: PredictionResult }) {
             </div>
             <ScoreBar score={result.top.score} strong />
             <p className="mt-2 text-xs text-slate-500">
-              This is the model’s raw output for this image. It is <strong>not</strong> a calibrated probability and not a diagnosis.
+              Acceptance threshold: {(result.threshold * 100).toFixed(0)}%. This is the model’s raw output for this image. It is <strong>not</strong> a calibrated probability and not a diagnosis.
             </p>
           </div>
           <h3 className="mt-5 text-sm font-semibold text-slate-900">Information</h3>
@@ -40,6 +40,15 @@ export default function ResultCard({ result }: { result: PredictionResult }) {
             {result.disagreement ? "The models disagreed on the highest-scoring category." : "The result did not meet the experimental acceptance threshold."} This does not mean the skin is
             healthy or unhealthy.
           </p>
+          <div className="mt-4 rounded-xl border border-amber-200 bg-white p-3 text-slate-800">
+            <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2 text-sm">
+              <span className="font-medium">Highest model score</span>
+              <span className="text-xl font-bold tabular-nums">{(result.top.score * 100).toFixed(1)}%</span>
+            </div>
+            <ScoreBar score={result.top.score} />
+            <p className="mt-2 text-sm text-slate-600">Required score: {(result.threshold * 100).toFixed(0)}%{result.disagreement ? " plus model agreement" : ""}.</p>
+            <p className="mt-1 text-xs text-slate-600">This score is not a medical probability or a diagnosis. No condition has been accepted.</p>
+          </div>
           <p className="mt-2 text-sm text-amber-900">
             You can retake the photograph in good light with the affected area in focus, but a healthcare professional is the right person to
             assess any skin concern.
@@ -58,8 +67,9 @@ export default function ResultCard({ result }: { result: PredictionResult }) {
         </section>
       )}
 
-      {result.reliable && <section className="card" aria-label="Other possible categories">
-        <h3 className="font-semibold text-slate-900">Other categories the model considered</h3>
+      <section className="card" aria-label="Model category scores">
+        <h3 className="font-semibold text-slate-900">{result.reliable ? "Other categories the model considered" : "Uncertain model scores (not accepted results)"}</h3>
+        {!result.reliable && <p className="mt-2 text-sm text-amber-900">These experimental scores are shown for transparency only. Do not use them to identify a disease or choose treatment.</p>}
         <ul className="mt-3 space-y-4">
           {(result.reliable ? others : result.ranked.slice(0, 3)).map((c) => (
             <li key={c.id}>
@@ -74,7 +84,7 @@ export default function ResultCard({ result }: { result: PredictionResult }) {
         <p className="mt-3 text-xs text-slate-500">
           These categories are listed for information only. Scores are not clinical probabilities. Similar-looking conditions may be confused by the model.
         </p>
-      </section>}
+      </section>
 
       <section className="card border-teal-200 bg-teal-50" aria-label="Medical guidance">
         <h3 className="font-semibold text-teal-900">Recommendation</h3>
