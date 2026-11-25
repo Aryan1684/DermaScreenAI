@@ -1,6 +1,7 @@
 import type * as TF from "@tensorflow/tfjs";
 import { loadEnsemble, predictEnsemble } from "./ensemble";
 import { loadModel } from "./model";
+import { DERM_CLASSES, predictDermRemote } from "./dermRemote";
 import { SCREENING_THRESHOLD } from "./screeningConfig";
 import { assessQuality, imageToCanvas, loadImageElement } from "./preprocessing";
 import type { ConditionId, PredictionResult, QualityReport, ScoredCategory } from "./types";
@@ -36,9 +37,8 @@ export function interpretScores(
 }
 
 /** Full pipeline: decode -> quality check -> resize -> (0..255 float) tensor -> TF.js inference -> ranked result. */
-export async function analyseImage(objectUrl: string, onStage?: (stage: string) => void): Promise<PredictionResult> {
+export async function analyseImage(objectUrl: string, onStage?: (stage: string) => void, remote = false): Promise<PredictionResult> {
   onStage?.("Loading the AI model…");
-  const { tf, model, info } = await loadModel();
 
   onStage?.("Preparing your photograph…");
   const img = await loadImageElement(objectUrl);
@@ -46,6 +46,13 @@ export async function analyseImage(objectUrl: string, onStage?: (stage: string) 
   if (quality.blocking) {
     throw new Error(quality.issues.find((i) => i.severity === "blocking")!.message);
   }
+  if (remote) {
+    onStage?.("Analysing using Derm Foundation backend…");
+    const t = performance.now();
+    const scores = await predictDermRemote(img);
+    return {...interpretScores(scores, DERM_CLASSES, SCREENING_THRESHOLD, quality, performance.now()-t), modelCount:1, modelName:"derm-foundation"};
+  }
+  const { tf, model, info } = await loadModel();
   const canvas = imageToCanvas(img, info.inputSize);
 
   onStage?.("Analysing the image…");

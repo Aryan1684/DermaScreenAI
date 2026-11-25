@@ -22,7 +22,7 @@ export default function HomePage() {
             </h1>
             <p className="mt-4 text-base leading-relaxed text-slate-600 sm:text-lg">
               Upload or capture a photograph of your skin and get preliminary, educational information about possible skin-condition
-              categories – directly in your browser, with nothing uploaded.
+              categories – using private browser processing by default.
             </p>
             <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2">
               <Link href="/screening" className="btn btn-primary text-lg">
@@ -93,7 +93,7 @@ export default function HomePage() {
             <p className="mt-3 text-slate-600">
               The website uses a convolutional neural network (<strong>EfficientNet-B0</strong>) that was pre-trained on ImageNet and then adapted
               with <strong>transfer learning</strong> on photographs from the public <strong>SCIN</strong> (Skin Condition Image Network) dataset.
-              Predictions run locally with <strong>TensorFlow.js</strong>, so the website works as a static site without any server.
+              Default predictions run locally with <strong>TensorFlow.js</strong>, so the website works as a static site without a dedicated inference server in local mode.
             </p>
             <p className="mt-3 text-slate-600">
               The model is small and the data is limited, so its accuracy is modest. When the model score is below its experimental threshold, the app withholds category suggestions. Even accepted results can be wrong.

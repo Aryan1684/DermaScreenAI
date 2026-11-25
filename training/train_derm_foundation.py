@@ -36,7 +36,7 @@ def main():
     for c,ids in by.items():
         ids=sorted(ids); rng.shuffle(ids); n=len(ids); nt,nv=int(n*.6),int(n*.2)
         for i,cid in enumerate(ids): splits[cid]=(c,"train" if i<nt else "val" if i<nt+nv else "test")
-    path=hf_hub_download("google/derm-foundation", "scin_dataset_precomputed_embeddings.npz",token=os.environ.get("HF_TOKEN"))
+    path=hf_hub_download("google/derm-foundation", "scin_dataset_precomputed_embeddings.npz",token=os.environ.get("HF_TOKEN"),revision=os.environ.get("DERM_REVISION"))
     data={s:[] for s in ("train","val","test")}; missing=collections.Counter()
     with np.load(path,allow_pickle=False) as embeddings:
         keys=set(embeddings.files)

@@ -1,0 +1,9 @@
+# Derm Foundation inference service (research only)
+The service runs the actual gated SavedModel and the independently trained L2-normalized logistic classifier. It rebuilds the head with the authorized SCIN embeddings and refuses to start if the experimental evaluation gate fails. No gated assets, raw images or tokens are committed. The original 55.95% refers to precomputed embeddings, not verified full raw-image accuracy.
+
+Build from repository root: docker build -f backend/Dockerfile -t dermascreen-api .
+Run with environment HF_TOKEN (read access already granted), PORT (defaults 7860), ALLOWED_ORIGINS (comma-separated exact website origins), and a machine with sufficient RAM/disk for the foundation model. Use HTTPS via the hosting provider. Do not place token in Netlify public environment variables. Container startup downloads the model and retrains the head; allow sufficient startup time. A persistent private cache is optional. Public service needs operational rate limiting, monitoring, review of model terms and hosting privacy/retention before accepting sensitive data. CORS alone is not authentication.
+
+After the API is hosted and health/smoke checks pass, set NEXT_PUBLIC_DERM_API_URL to its HTTPS base URL in Netlify and redeploy. The frontend keeps local mode by default; a separate explicit opt-in enables server processing. No silent fallback. For academic testing use public/de-identified authorized sample photos only. The backend does not persist photos in application code; provider logs/retention must be reviewed independently.
+
+CI runs a raw-image parity check against one public SCIN embedding and checks the HTTP API. A full raw-image held-out evaluation and fresh independent test remain required before claiming live accuracy or clinical reliability. Hosting account access and any paid plan must be authorized separately.
