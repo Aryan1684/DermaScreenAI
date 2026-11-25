@@ -9,10 +9,11 @@ os.environ.setdefault("TF_NUM_INTEROP_THREADS","1")
 os.environ.setdefault("OPENBLAS_NUM_THREADS","1")
 os.environ.setdefault("OMP_NUM_THREADS","1")
 assets=Path(__file__).resolve().parent/"runtime_assets"
+app=FastAPI(docs_url=None,redoc_url=None)
 if (assets/"model/saved_model.pb").is_file() and (assets/"head/classifier_head.npz").is_file():
- from backend.app import app
+ from backend.app import app as inference_app
+ app.mount("/", inference_app)
 else:
- app=FastAPI(docs_url=None,redoc_url=None)
  app.add_middleware(CORSMiddleware,allow_origins=["https://dermascreenai.netlify.app","https://deploy-preview-1--dermascreenai.netlify.app"],allow_methods=["GET","POST"],allow_headers=["Content-Type"])
  @app.get("/health")
  def health():

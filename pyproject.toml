@@ -11,5 +11,8 @@ dependencies = [
  "fastapi==0.115.6",
  "uvicorn==0.34.0",
 ]
+[tool.vercel]
+entrypoint = "main:app"
+
 [tool.vercel.scripts]
 build = "python build.py"
