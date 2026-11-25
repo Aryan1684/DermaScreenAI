@@ -34,7 +34,7 @@ export default function AboutPage() {
       <Block title="Introduction">
         <p>
           This is an academic web application that lets a user upload or capture a photograph of a skin area and receive preliminary
-          information about possible skin-condition categories. A deep-learning image classifier runs inside the browser using TensorFlow.js,
+          information about possible skin-condition categories. A deep-learning image classifier runs inside the browser using ONNX Runtime Web,
           so screening needs no prediction server.
         </p>
       </Block>
@@ -60,8 +60,8 @@ export default function AboutPage() {
         <ul className="list-disc space-y-1 pl-5">
           <li><strong>Next.js / React + TypeScript</strong> – user interface (exported as a static site for Netlify).</li>
           <li><strong>Tailwind CSS</strong> – responsive styling.</li>
-          <li><strong>TensorFlow.js</strong> – in-browser model loading and inference.</li>
-          <li><strong>TensorFlow / Keras (Python)</strong> – model training and export to TensorFlow.js format.</li>
+          <li><strong>ONNX Runtime Web</strong> – in-browser model loading and inference.</li>
+          <li><strong>TensorFlow / Keras (Python)</strong> – model training and export to ONNX Runtime Web format.</li>
           <li><strong>HTML canvas</strong> – image resizing and basic quality checks (brightness, contrast, blur).</li>
         </ul>
       </Block>
@@ -106,18 +106,12 @@ export default function AboutPage() {
       <Block title="Model architecture">
         <ul className="list-disc space-y-1 pl-5">
           <li>Input: 224 × 224 RGB image (raw 0–255 pixel values; normalisation is inside the model).</li>
-          <li>Backbone: EfficientNet-B0 pre-trained on ImageNet. The early blocks stay frozen; the upper blocks (block 6 onwards) are fine-tuned on SCIN. BatchNormalization layers stay frozen.</li>
-          <li>Head (trained on SCIN): Dropout(0.4) → Dense(7, softmax).</li>
-          <li>Loss: categorical cross-entropy with label smoothing; class weights (square root of inverse frequency) compensate for class imbalance.</li>
-          <li>Augmentation while training: random flips, rotation, zoom, brightness and contrast.</li>
-          <li>10 training epochs; the epoch with the best <strong>validation</strong> macro-F1 is kept. The test split is only used once, for the final evaluation.</li>
-          <li>The original evaluation threshold was chosen on the validation set. The current single-model demonstration uses a temporary {pct(SCREENING_THRESHOLD)} base threshold (10 percentage points higher for quality warnings). Below it, the app displays inconclusive scores, not an accepted category.</li>
-          <li>Exported with the TensorFlow.js converter (float16 weights, about 8 MB) and served from <code>/models/skin/</code>. The output of the exported model was checked against the original Keras model.</li>
+          <li>Backbones: MobileNetV2 and EfficientNetV2-B0 pretrained on ImageNet, frozen during head training.</li><li>Head: logistic regression folded into a seven-class softmax dense layer for each backbone.</li><li>Training features include original images and horizontal flips; validation selected equal ensemble weights.</li><li>The browser averages both score vectors with equal weights; all processing remains on the device.</li><li>The {pct(SCREENING_THRESHOLD)} demonstration threshold is raised by 10 percentage points for quality warnings. It is not a clinical reliability guarantee.</li><li>Original saved weights exported as ONNX and verified on the original held-out test partition before release.</li>
         </ul>
         <p className="text-sm text-slate-500">Categories supported: {Object.values(CONDITIONS).map((c) => c.name).join(", ")}.</p>
       </Block>
 
-      <Block title="Local EfficientNet-B0 evaluation (held-out test split)">
+      <Block title="Local ensemble evaluation (held-out test split)">
         {info === undefined && <p className="text-slate-500">Loading…</p>}
         {info === null && (
           <p className="rounded-xl bg-amber-50 p-3 text-amber-900">
@@ -132,10 +126,10 @@ export default function AboutPage() {
               <div className="col-span-2 rounded-xl bg-slate-50 p-4 sm:col-span-1"><p className="text-xs text-slate-500">Always guessing the biggest class</p><p className="text-2xl font-bold">{pct(info.metrics.majority_class_baseline_accuracy)}</p></div>
             </div>
             <p>
-              In the original test evaluation at the threshold of {pct(info.rejectThreshold)}, the model gives an answer for {pct(info.metrics.test_coverage_at_threshold)} of
+              In the converted model test evaluation at the threshold of {pct(info.rejectThreshold)}, the model gives an answer for {pct(info.metrics.test_coverage_at_threshold)} of
               test images
               {info.metrics.test_accuracy_on_accepted !== null && <> and {pct(info.metrics.test_accuracy_on_accepted)} of those answers were correct</>}. For the
-              remaining test images were rejected. These historical metrics do not measure performance at the current {pct(SCREENING_THRESHOLD)} demonstration threshold; accuracy and coverage at that threshold have not been evaluated.
+              remaining test images were rejected. These metrics use the base threshold on the historical test partition; quality-aware screening coverage has not been evaluated.
             </p>
             <p className="text-xs text-slate-600 sm:hidden">Swipe the table sideways to see all metrics.</p>
             <div className="max-w-full overflow-x-auto overscroll-x-contain rounded-lg" role="region" aria-label="Per-class evaluation metrics" tabIndex={0}>

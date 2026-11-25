@@ -1,0 +1,57 @@
+name: Recover and verify original browser ensemble
+on:
+  push:
+    branches: [frontend-ensemble]
+    paths: ['training/restore_ensemble.py','.github/workflows/restore-ensemble.yml']
+permissions:
+  contents: write
+  actions: read
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      TF_CPP_MIN_LOG_LEVEL: '2'
+      TF_NUM_INTRAOP_THREADS: '2'
+      TF_NUM_INTEROP_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '2'
+      NEXT_STATIC_EXPORT: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: skin-training-results
+          path: /tmp/original-ensemble
+          run-id: '45554441628'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install tensorflow-cpu==2.15.1 tf2onnx==1.16.1 onnxruntime==1.20.1 numpy==1.26.4 scikit-learn==1.5.2 pillow==10.4.0
+      - name: Recover same historical test set
+        run: |
+          mkdir -p /tmp/scin
+          curl -fsSL --retry 3 https://storage.googleapis.com/dx-scin-public-data/dataset/scin_cases.csv -o /tmp/scin/cases.csv
+          curl -fsSL --retry 3 https://storage.googleapis.com/dx-scin-public-data/dataset/scin_labels.csv -o /tmp/scin/labels.csv
+          python training/prepare_data.py --csv_dir /tmp/scin --out /tmp/scin/data
+      - name: Export original model weights and reproduce 36.55 percent accuracy
+        run: python training/restore_ensemble.py --artifact /tmp/original-ensemble --data /tmp/scin/data --out public/models/ensemble
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci && npm install --save-exact onnxruntime-web@1.20.1
+      - name: Copy local WASM runtime assets
+        run: |
+          mkdir -p public/models/ensemble/wasm
+          cp node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.* public/models/ensemble/wasm/
+          test -s public/models/ensemble/wasm/ort-wasm-simd-threaded.wasm
+      - name: Verify ONNX WASM inference
+        run: node training/verify_ensemble.mjs
+      - run: npm run typecheck && npm run build
+      - name: Publish verified model assets to frontend-ensemble branch only
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f public/models/ensemble package.json package-lock.json
+          git commit -m "Publish verified original 36.55% browser-only ensemble"
+          git push origin HEAD:frontend-ensemble

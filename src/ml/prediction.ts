@@ -1,4 +1,3 @@
-import type * as TF from "@tensorflow/tfjs";
 import { loadModel } from "./model";
 import { SCREENING_THRESHOLD } from "./screeningConfig";
 import { assessQuality, imageToCanvas, loadImageElement } from "./preprocessing";
@@ -44,19 +43,23 @@ export async function analyseImage(objectUrl: string, onStage?: (stage: string) 
   if (quality.blocking) {
     throw new Error(quality.issues.find((i) => i.severity === "blocking")!.message);
   }
-  const { tf, model, info } = await loadModel();
+  const { ort, sessions, info } = await loadModel();
   const canvas = imageToCanvas(img, info.inputSize);
 
   onStage?.("Analysing the image…");
   await new Promise((r) => setTimeout(r, 30)); // let the loading animation paint
   const t0 = performance.now();
-  const scores = tf.tidy(() => {
-    // The model contains EfficientNet's own normalisation layers, so it expects raw 0..255 RGB values.
-    const x = tf.browser.fromPixels(canvas).toFloat().expandDims(0);
-    return model.predict(x) as TF.Tensor;
-  });
-  const data = await scores.data().finally(() => scores.dispose());
-  const ms = performance.now() - t0;
-
-  return {...interpretScores(data, info.classes, SCREENING_THRESHOLD, quality, ms), modelCount: 1};
+  const pixels=canvas.getContext("2d")!.getImageData(0,0,224,224).data;
+  const rgb=new Float32Array(224*224*3);
+  for(let i=0,j=0;i<pixels.length;i+=4){rgb[j++]=pixels[i];rgb[j++]=pixels[i+1];rgb[j++]=pixels[i+2];}
+  const input=new ort.Tensor("float32",rgb,[1,224,224,3]);
+  const data=new Float32Array(7);
+  for(const session of sessions){
+    const outputs=await session.run({[session.inputNames[0]]:input});
+    const scores=outputs[session.outputNames[0]].data;
+    if(scores.length!==7)throw new Error("Invalid model output.");
+    for(let i=0;i<7;i++)data[i]+=Number(scores[i])*.5;
+  }
+  const ms=performance.now()-t0;
+  return {...interpretScores(data,info.classes,SCREENING_THRESHOLD,quality,ms),modelCount:2};
 }
