@@ -54,4 +54,6 @@ export interface PredictionResult {
   threshold: number;
   quality: QualityReport;
   inferenceMs: number;
+  modelCount?: number;
+  disagreement?: boolean;
 }

@@ -1,11 +1,12 @@
 import type * as TF from "@tensorflow/tfjs";
 import { loadModel } from "./model";
+import { SCREENING_THRESHOLD } from "./screeningConfig";
 import { assessQuality, imageToCanvas, loadImageElement } from "./preprocessing";
 import type { ConditionId, PredictionResult, QualityReport, ScoredCategory } from "./types";
 
 /**
  * Turns raw model scores into a ranked list and decides whether the result is reliable enough to show.
- * The "reliable" rule uses a threshold that was chosen on the validation set during training.
+ * The acceptance rule uses the configured screening threshold; it is not a clinical reliability guarantee.
  * A poor-quality photograph (warnings) raises the bar slightly. Scores are NOT calibrated probabilities.
  */
 export function interpretScores(
@@ -15,6 +16,9 @@ export function interpretScores(
   quality: QualityReport,
   inferenceMs: number,
 ): PredictionResult {
+  if (scores.length !== classes.length || classes.length === 0 || Array.from(scores).some((score) => !Number.isFinite(score) || score < 0 || score > 1)) {
+    throw new Error("The model returned invalid scores. No result can be shown.");
+  }
   const ranked: ScoredCategory[] = classes
     .map((id, i) => ({ id, score: scores[i] }))
     .sort((a, b) => b.score - a.score);
@@ -33,7 +37,6 @@ export function interpretScores(
 /** Full pipeline: decode -> quality check -> resize -> (0..255 float) tensor -> TF.js inference -> ranked result. */
 export async function analyseImage(objectUrl: string, onStage?: (stage: string) => void): Promise<PredictionResult> {
   onStage?.("Loading the AI model…");
-  const { tf, model, info } = await loadModel();
 
   onStage?.("Preparing your photograph…");
   const img = await loadImageElement(objectUrl);
@@ -41,6 +44,7 @@ export async function analyseImage(objectUrl: string, onStage?: (stage: string) 
   if (quality.blocking) {
     throw new Error(quality.issues.find((i) => i.severity === "blocking")!.message);
   }
+  const { tf, model, info } = await loadModel();
   const canvas = imageToCanvas(img, info.inputSize);
 
   onStage?.("Analysing the image…");
@@ -51,9 +55,8 @@ export async function analyseImage(objectUrl: string, onStage?: (stage: string) 
     const x = tf.browser.fromPixels(canvas).toFloat().expandDims(0);
     return model.predict(x) as TF.Tensor;
   });
-  const data = await scores.data();
-  scores.dispose();
+  const data = await scores.data().finally(() => scores.dispose());
   const ms = performance.now() - t0;
 
-  return interpretScores(data, info.classes, info.rejectThreshold, quality, ms);
+  return {...interpretScores(data, info.classes, SCREENING_THRESHOLD, quality, ms), modelCount: 1};
 }

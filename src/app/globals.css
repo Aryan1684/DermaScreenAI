@@ -37,7 +37,7 @@ body {
 @keyframes scan {
   0% { transform: translateY(0); opacity: 0.2; }
   50% { opacity: 1; }
-  100% { transform: translateY(100%); opacity: 0.2; }
+  100% { transform: translateY(calc(var(--scan-height, 14rem) - 4px)); opacity: 0.2; }
 }
 .scan-line {
   animation: scan 1.6s ease-in-out infinite alternate;
@@ -45,4 +45,31 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .scan-line, .animate-spin { animation: none !important; }
   html { scroll-behavior: auto; }
+}
+
+/* Responsive and accessible presentation polish */
+html { scroll-padding-top: 5rem; }
+body { overflow-wrap: break-word; }
+main { overflow-wrap: anywhere; }
+main, .card { min-width: 0; }
+@layer components { .card { padding: clamp(1rem, 3vw, 1.5rem); } }
+.btn { white-space: normal; text-align: center; }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid #0891b2; outline-offset: 3px; }
+@media (max-width: 480px) { .btn { padding-inline: 1rem; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+
+/* Mobile-first refinements; keep desktop layout and native dialog behavior. */
+:root { -webkit-text-size-adjust: 100%; }
+.site-nav { padding-top: env(safe-area-inset-top, 0px); }
+.site-footer { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.consent-dialog { width: min(calc(100% - 2rem), 32rem); max-height: min(90vh, 90dvh); overscroll-behavior: contain; }
+html:has(.consent-dialog[open]) { overflow: hidden; }
+.consent-actions { background: white; border-top: 1px solid #e2e8f0; }
+@media (max-width: 639px) {
+  .consent-dialog { inset: auto 0 0; margin: 0 auto; width: 100%; max-width: 100%; max-height: min(94vh, 94dvh); border-radius: 1.5rem 1.5rem 0 0; }
+  .consent-actions { padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px)); }
+  .mobile-nav-panel { max-height: calc(100dvh - 5rem); overflow-y: auto; overscroll-behavior: contain; }
+  .section-title { font-size: clamp(1.5rem, 6vw, 1.875rem); line-height: 1.2; }
+  .btn { min-height: 48px; }
+  .site-footer a { display: inline-flex; align-items: center; min-height: 44px; }
 }

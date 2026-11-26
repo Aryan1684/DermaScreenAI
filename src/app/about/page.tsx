@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { fetchModelInfo } from "@/ml/model";
+import { SCREENING_THRESHOLD } from "@/ml/screeningConfig";
 import { CONDITIONS } from "@/ml/conditions";
 import type { ModelInfo } from "@/ml/types";
 
@@ -24,7 +25,7 @@ export default function AboutPage() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-4 py-10 sm:px-6">
+    <div className="mx-auto max-w-4xl space-y-4 px-4 py-6 sm:space-y-6 sm:px-6 sm:py-10">
       <header>
         <h1 className="section-title">About the project</h1>
         <p className="mt-2 text-slate-600">AI-Powered Skin Condition Screening Using Smartphone Images – a college minor project.</p>
@@ -34,7 +35,7 @@ export default function AboutPage() {
         <p>
           This is an academic web application that lets a user upload or capture a photograph of a skin area and receive preliminary
           information about possible skin-condition categories. A deep-learning image classifier runs inside the browser using TensorFlow.js,
-          so the website is fully static and photos never leave the device.
+          so screening needs no prediction server.
         </p>
       </Block>
 
@@ -110,13 +111,13 @@ export default function AboutPage() {
           <li>Loss: categorical cross-entropy with label smoothing; class weights (square root of inverse frequency) compensate for class imbalance.</li>
           <li>Augmentation while training: random flips, rotation, zoom, brightness and contrast.</li>
           <li>10 training epochs; the epoch with the best <strong>validation</strong> macro-F1 is kept. The test split is only used once, for the final evaluation.</li>
-          <li>A “reliability threshold” is chosen on the validation set; below it the app refuses to name a category.</li>
+          <li>The original evaluation threshold was chosen on the validation set. The current single-model demonstration uses a temporary {pct(SCREENING_THRESHOLD)} base threshold (10 percentage points higher for quality warnings). Below it, the app displays inconclusive scores, not an accepted category.</li>
           <li>Exported with the TensorFlow.js converter (float16 weights, about 8 MB) and served from <code>/models/skin/</code>. The output of the exported model was checked against the original Keras model.</li>
         </ul>
         <p className="text-sm text-slate-500">Categories supported: {Object.values(CONDITIONS).map((c) => c.name).join(", ")}.</p>
       </Block>
 
-      <Block title="Model evaluation (measured on the held-out test split)">
+      <Block title="Local EfficientNet-B0 evaluation (held-out test split)">
         {info === undefined && <p className="text-slate-500">Loading…</p>}
         {info === null && (
           <p className="rounded-xl bg-amber-50 p-3 text-amber-900">
@@ -125,18 +126,19 @@ export default function AboutPage() {
         )}
         {info && (
           <>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
               <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs text-slate-500">Test accuracy</p><p className="text-2xl font-bold">{pct(info.metrics.test_accuracy)}</p></div>
               <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs text-slate-500">Macro F1-score</p><p className="text-2xl font-bold">{info.metrics.test_macro_f1.toFixed(2)}</p></div>
-              <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs text-slate-500">Always guessing the biggest class</p><p className="text-2xl font-bold">{pct(info.metrics.majority_class_baseline_accuracy)}</p></div>
+              <div className="col-span-2 rounded-xl bg-slate-50 p-4 sm:col-span-1"><p className="text-xs text-slate-500">Always guessing the biggest class</p><p className="text-2xl font-bold">{pct(info.metrics.majority_class_baseline_accuracy)}</p></div>
             </div>
             <p>
-              With the reliability threshold ({pct(info.rejectThreshold)}), the model gives an answer for {pct(info.metrics.test_coverage_at_threshold)} of
+              In the original test evaluation at the threshold of {pct(info.rejectThreshold)}, the model gives an answer for {pct(info.metrics.test_coverage_at_threshold)} of
               test images
               {info.metrics.test_accuracy_on_accepted !== null && <> and {pct(info.metrics.test_accuracy_on_accepted)} of those answers were correct</>}. For the
-              remaining images it says it cannot assess the image reliably.
+              remaining test images were rejected. These historical metrics do not measure performance at the current {pct(SCREENING_THRESHOLD)} demonstration threshold; accuracy and coverage at that threshold have not been evaluated.
             </p>
-            <div className="overflow-x-auto">
+            <p className="text-xs text-slate-600 sm:hidden">Swipe the table sideways to see all metrics.</p>
+            <div className="max-w-full overflow-x-auto overscroll-x-contain rounded-lg" role="region" aria-label="Per-class evaluation metrics" tabIndex={0}>
               <table className="w-full min-w-[480px] text-left text-sm">
                 <thead>
                   <tr className="border-b border-slate-200 text-slate-500">
